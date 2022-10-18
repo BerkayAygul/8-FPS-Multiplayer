@@ -13,6 +13,9 @@ public class PlayerController : MonoBehaviour
     private Vector2 mouseInput;
     public bool invertLook;
 
+    public float moveSpeed = 5f;
+    private Vector3 moveDirection;
+    private Vector3 movement;
     void Start()
     {
         // The mouse shouldn't fly around the place where we're moving around. It should only move anywhere within the window.
@@ -59,6 +62,17 @@ public class PlayerController : MonoBehaviour
          * playerViewPoint.rotation = Quaternion.Euler(Mathf.Clamp(playerViewPoint.rotation.eulerAngles.x - mouseInput.y, -60f, 60f)
         */
 
+
+        // Time.deltaTime is how long it takes for each frame update to happen. 
+        // If our game is running at 60 frames a second, this will be one divided by 60.
+        /* If we said we could make our move speed much smaller, that would work but at different frame rates, the player would move
+        ** at different speeds. */
+        /* If we look sideways and press forward, the player will still go in the same direction that we had before, which is wrong.
+        ** We are going to use transform.forward and transform.right to fix this. */
+        // We are moving a lot faster when we move in a diagonal action. We can fix that by normalizing the vector.
+        moveDirection = new Vector3(Input.GetAxisRaw("Horizontal"), 0f, Input.GetAxisRaw("Vertical"));
+        movement = ((transform.forward * moveDirection.z) + (transform.right * moveDirection.x)).normalized;
+        transform.position += movement * moveSpeed * Time.deltaTime;
         
     }
 }
