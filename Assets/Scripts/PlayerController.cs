@@ -16,6 +16,14 @@ public class PlayerController : MonoBehaviour
     public float moveSpeed = 5f;
     private Vector3 moveDirection;
     private Vector3 movement;
+
+    /* A CharacterController allows you to easily do movement constrained by collisions without having to deal with a rigidbody.
+       A CharacterController is not affected by forces and will only move when you call the Move function. 
+       It will then carry out the movement but be constrained by collisions.
+       We are going to use this to move our player around instead of the transform.position.
+       One other thing about the Character Controller is it allows us to deal with things like slopes very handly.
+    */
+    public CharacterController characterController;
     void Start()
     {
         // The mouse shouldn't fly around the place where we're moving around. It should only move anywhere within the window.
@@ -72,7 +80,8 @@ public class PlayerController : MonoBehaviour
         // We are moving a lot faster when we move in a diagonal action. We can fix that by normalizing the vector.
         moveDirection = new Vector3(Input.GetAxisRaw("Horizontal"), 0f, Input.GetAxisRaw("Vertical"));
         movement = ((transform.forward * moveDirection.z) + (transform.right * moveDirection.x)).normalized;
-        transform.position += movement * moveSpeed * Time.deltaTime;
+        characterController.Move(movement * moveSpeed * Time.deltaTime);
+        //transform.position += movement * moveSpeed * Time.deltaTime;
         
     }
 }
