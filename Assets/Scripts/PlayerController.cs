@@ -14,6 +14,8 @@ public class PlayerController : MonoBehaviour
     public bool invertLook;
 
     public float moveSpeed = 5f;
+    public float runSpeed = 8f;
+    private float activeMoveSpeed;
     private Vector3 moveDirection;
     private Vector3 movement;
 
@@ -22,6 +24,8 @@ public class PlayerController : MonoBehaviour
        It will then carry out the movement but be constrained by collisions.
        We are going to use this to move our player around instead of the transform.position.
        One other thing about the Character Controller is it allows us to deal with things like slopes very handly.
+       Another thing about the Character Controller is it has a limit for the amount of slope (degree) it can handle (can be adjusted).
+       45 degrees (default) is a reasonable slope limit that a player is able to walk up.
     */
     public CharacterController characterController;
     void Start()
@@ -79,8 +83,21 @@ public class PlayerController : MonoBehaviour
         ** We are going to use transform.forward and transform.right to fix this. */
         // We are moving a lot faster when we move in a diagonal action. We can fix that by normalizing the vector.
         moveDirection = new Vector3(Input.GetAxisRaw("Horizontal"), 0f, Input.GetAxisRaw("Vertical"));
-        movement = ((transform.forward * moveDirection.z) + (transform.right * moveDirection.x)).normalized;
-        characterController.Move(movement * moveSpeed * Time.deltaTime);
+
+        if(Input.GetKey(KeyCode.LeftShift))
+        {
+            activeMoveSpeed = runSpeed;
+        }
+        else
+        {
+            activeMoveSpeed = moveSpeed;
+        }
+
+        // When we start applying gravity to our player, we are going to make some changes to the y value of the movement.    
+        // We don't want movement to get multiplied by the value of the y-axis of activeMoveSpeed.
+        // We shouldn't use activeMoveSpeed in characterController.Move().
+        movement = ((transform.forward * moveDirection.z) + (transform.right * moveDirection.x)).normalized * activeMoveSpeed;
+        characterController.Move(movement * Time.deltaTime);
         //transform.position += movement * moveSpeed * Time.deltaTime;
         
     }
