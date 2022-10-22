@@ -33,11 +33,13 @@ public class PlayerController : MonoBehaviour
 
     /* When the player gets killed, we have no camera displaying on our screen. 
        So the camera is no longer the child object of the player. 
-       We will just tell our camera to move to the view point every frame (will be updated later).*/
+       We will just tell our camera to move to the view point every frame (will be updated later). */
     /* When the player dies, it is going to be deleted from the scene then we are going to create a new player,
        so we don't want to have to assign the camera manually to that player whenever we create a new one, because
        we won't be able to do that when the game is running. So we are going to create a private camera reference. */
     private Camera camera;
+
+    private float yVelocity;
 
     void Start()
     {
@@ -106,10 +108,34 @@ public class PlayerController : MonoBehaviour
             activeMoveSpeed = moveSpeed;
         }
 
+
         // When we start applying gravity to our player, we are going to make some changes to the y value of the movement.    
         // We don't want movement to get multiplied by the value of the y-axis of activeMoveSpeed.
         // We shouldn't use activeMoveSpeed in characterController.Move().
+        // ----------------------------------------------------------------------------------------------------------------------------
+        // Add gravity to y axis of movement.
+        // A problem causes fall down speed to be really slow.
+        /* When we are moving the player around in our movement phase here, we are controlling the z and x axes.
+           But for both of those they have a default value for Y of zero. So what's happening here is both of these are
+           setting the y movement value to be zero. Then we're taking away gravity.
+           As things happen in the real world, when you start to fall, you start falling slowly,
+           but you fall faster and faster over time.
+           So what we need to do is make sure that the Y value for these isn't reset. 
+           We have to store the current Y movement that we have, which will be the velocity of our player.
+           We are going to create a disposable float value that we will call y velocity, before applying any movement. */
+        /* If we open debug, we can see that y velocity is continually growing faster and faster, we do not want our player
+           constantly falling down to the ground like that. We are going to add an extra check to fis that issue. */
+        float yVelocity = movement.y;
         movement = ((transform.forward * moveDirection.z) + (transform.right * moveDirection.x)).normalized * activeMoveSpeed;
+        movement.y = yVelocity;
+        if(characterController.isGrounded)
+        {
+            // y movement should be 0 if the player is on the ground.
+            movement.y = 0;
+        }
+
+        movement.y += Physics.gravity.y * Time.deltaTime;
+
         characterController.Move(movement * Time.deltaTime);
         //transform.position += movement * moveSpeed * Time.deltaTime;
         
