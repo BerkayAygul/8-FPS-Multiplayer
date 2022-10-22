@@ -28,6 +28,17 @@ public class PlayerController : MonoBehaviour
        45 degrees (default) is a reasonable slope limit that a player is able to walk up.
     */
     public CharacterController characterController;
+
+    // When the camera updates the player, the head of the player moves slightly and gets a kind of jittery movement effect. 
+
+    /* When the player gets killed, we have no camera displaying on our screen. 
+       So the camera is no longer the child object of the player. 
+       We will just tell our camera to move to the view point every frame (will be updated later).*/
+    /* When the player dies, it is going to be deleted from the scene then we are going to create a new player,
+       so we don't want to have to assign the camera manually to that player whenever we create a new one, because
+       we won't be able to do that when the game is running. So we are going to create a private camera reference. */
+    private Camera camera;
+
     void Start()
     {
         // The mouse shouldn't fly around the place where we're moving around. It should only move anywhere within the window.
@@ -35,6 +46,8 @@ public class PlayerController : MonoBehaviour
         // Locked = the cursor gets locked to the center of the screen and makes the mouse disappear completely.
         // Note: If we press the escape button, the cursor will be free in the editor (not in the final build).
         Cursor.lockState = CursorLockMode.Locked;
+
+        camera = Camera.main;
     }
 
     void Update()
@@ -100,5 +113,13 @@ public class PlayerController : MonoBehaviour
         characterController.Move(movement * Time.deltaTime);
         //transform.position += movement * moveSpeed * Time.deltaTime;
         
+    }
+
+    // We need to make sure that the player has moves before we update the camera.
+    // LateUpdate() basically happens after Update().
+    private void LateUpdate()
+    {
+        camera.transform.position = playerViewPoint.position;
+        camera.transform.rotation = playerViewPoint.rotation;
     }
 }
