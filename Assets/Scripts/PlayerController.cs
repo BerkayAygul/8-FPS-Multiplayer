@@ -41,6 +41,17 @@ public class PlayerController : MonoBehaviour
 
     private float yVelocity;
 
+    public float jumpForce = 10f;
+    public float gravityMod = 2.5f;
+
+    // This is going to be the point in space that we want this invisible line to go down.
+    public Transform groundCheckPoint;
+    // We are going to need to store whether we are on the ground or not.
+    private bool isGrounded;
+    // By using UI, we are going to create a new user layer called "Ground_Layer" and assign it to Environment's layer.
+    // Then we are going to assign Ground_Layer to the newly created LayerMask.
+    public LayerMask groundLayers;
+
     void Start()
     {
         // The mouse shouldn't fly around the place where we're moving around. It should only move anywhere within the window.
@@ -124,7 +135,7 @@ public class PlayerController : MonoBehaviour
            We have to store the current Y movement that we have, which will be the velocity of our player.
            We are going to create a disposable float value that we will call y velocity, before applying any movement. */
         /* If we open debug, we can see that y velocity is continually growing faster and faster, we do not want our player
-           constantly falling down to the ground like that. We are going to add an extra check to fis that issue. */
+           constantly falling down to the ground like that. We are going to add an extra check to fix that issue. */
         float yVelocity = movement.y;
         movement = ((transform.forward * moveDirection.z) + (transform.right * moveDirection.x)).normalized * activeMoveSpeed;
         movement.y = yVelocity;
@@ -134,8 +145,34 @@ public class PlayerController : MonoBehaviour
             movement.y = 0;
         }
 
-        movement.y += Physics.gravity.y * Time.deltaTime;
+        // Jump
+        /* The ‘get button’ functions work similarly to the ‘get key’ functions, except you cannot use KeyCodes, 
+           own buttons in the input manager.This is the recommended by Unity and can be quite powerful as it allows 
+           developers to map custom joystick / D-pad buttons. */
+        /* It feels odd how fast the player falls. Although we have represented real world gravity, it still feels slow.
+           So what are we going to do is modify the amount of gravity that's beign applied to our player. 
+           Multiply movement.y with gravityMod*/
+        /* The player is able to jump whenever he presses the button. 
+           The player should only jump whenever the player is on the ground.
+           It's not always 100 percent consistent with is.grounded check (we can check is.grounded with Debug.Log).
+           We are also going to create a recast, which will basically create a line that goes straight down from the player
+           (a certain distance from the player), and it will check within this distance is the ground here. */
+        /* A raycast does an invisible line and checks if it interacts with anything along that line.
+           If it hits anything along the invisible line, isGrounded is true, otherwise it is false.
+           First parameter = where do we want our raycast to start,
+           second parameter = what position our raycast is going to start,
+           third parameter = how long we want it to go (adjust the value if the player can't jump on the edges),
+           fourth parameter = the layer we are want to check.
+         */
+        
+        isGrounded = Physics.Raycast(groundCheckPoint.position, Vector3.down, 1.6f, groundLayers);
 
+        if (Input.GetButtonDown("Jump") && isGrounded)
+        {
+            movement.y = jumpForce;
+        }
+
+        movement.y += Physics.gravity.y * Time.deltaTime * gravityMod;
         characterController.Move(movement * Time.deltaTime);
         //transform.position += movement * moveSpeed * Time.deltaTime;
         
