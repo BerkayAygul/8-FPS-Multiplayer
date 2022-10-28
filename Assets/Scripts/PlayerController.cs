@@ -165,7 +165,7 @@ public class PlayerController : MonoBehaviour
            fourth parameter = the layer we are want to check.
          */
         
-        isGrounded = Physics.Raycast(groundCheckPoint.position, Vector3.down, 1.6f, groundLayers);
+        isGrounded = Physics.Raycast(groundCheckPoint.position, Vector3.down, .5f, groundLayers);
 
         if (Input.GetButtonDown("Jump") && isGrounded)
         {
@@ -175,9 +175,16 @@ public class PlayerController : MonoBehaviour
         movement.y += Physics.gravity.y * Time.deltaTime * gravityMod;
         characterController.Move(movement * Time.deltaTime);
         //transform.position += movement * moveSpeed * Time.deltaTime;
+        
+        // If the player presses the left mouse button, shoot.
+        if(Input.GetMouseButtonDown(0))
+        {
+            Shoot();
+        }
 
-        // If the player presses  the escape button, free the cursor.
-        // If the player presses  the mouse left click, lock the cursor.
+
+        // If the player presses the escape button, free the cursor.
+        // If the player presses the left mouse button, lock the cursor.
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             Cursor.lockState = CursorLockMode.None;
@@ -197,5 +204,29 @@ public class PlayerController : MonoBehaviour
     {
         camera.transform.position = playerViewPoint.position;
         camera.transform.rotation = playerViewPoint.rotation;
+    }
+
+    /* Think of how fast a bullet moves. Generally speaking, in reality, when you shoot a bullet, you would not see the actual bullet.
+       You see the bullet being fired and you see where it hit and both of these things happen almost in the same time.
+       That is how most games deal with it, there are no bullets flying through the air.
+       The game calculates where the point is that you hit against.
+       We are going to do a raycast to implement this idea.
+    */
+    private void Shoot()
+    {
+        // Pick a point within the camera, go from that point and go straight forward from the direction the camera is facing.
+        // x: .5f, y: .5f, halfway across on the x-axis and halfway up on the y-axis. That will get us the exact center point.
+        Ray bulletRay = camera.ViewportPointToRay(new Vector3(.5f, .5f, 0f));
+        // The origin point for that ray.
+        bulletRay.origin = camera.transform.position;
+
+        /* Basically, a RaycastHit is the result of the Raycast.
+           If the raycast detects something ahead of us when we shoot forward, it will store whatever information it finds in this
+           raycastHit object and it will send it back out.
+        */
+        if(Physics.Raycast(bulletRay, out RaycastHit raycastHit))
+        {
+            Debug.Log("Hit - " + raycastHit.collider.gameObject.name);
+        }
     }
 }
