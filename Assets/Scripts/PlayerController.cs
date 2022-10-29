@@ -52,6 +52,8 @@ public class PlayerController : MonoBehaviour
     // Then we are going to assign Ground_Layer to the newly created LayerMask.
     public LayerMask groundLayers;
 
+    public GameObject bulletImpact;
+
     void Start()
     {
         // The mouse shouldn't fly around the place where we're moving around. It should only move anywhere within the window.
@@ -226,7 +228,36 @@ public class PlayerController : MonoBehaviour
         */
         if(Physics.Raycast(bulletRay, out RaycastHit raycastHit))
         {
-            Debug.Log("Hit - " + raycastHit.collider.gameObject.name);
+            //Debug.Log("Hit - " + raycastHit.collider.gameObject.name);
+
+            // Create a bullet impact when we detect a hit.
+            // We want the bullet impact to go wherever we hit.
+            /* The rotation we want to have is whatever the surface is that we hit.
+               So, we want to face the direction that the surface we hit has. We are going to use the normal of the objects for that.
+               A normal is the direction that each particular face of an object is pointing.
+               raycastHit.normal would not work because it gives us a vector three value, but for rotations we need to use a quaternion.
+               We can use quaternion.LookRotation() and basically it tells us which direction the object should look when it gets
+               instantiated. So, the LookRotation() will be whatever our raycastHit.normal is and we need to tell it what is the
+               upwards direction of the world that we're in at the moment.
+            */
+
+            /* We get a flickering effect because when we shoot our little objects out, it hits against the wall and it goes to the
+               exact same point in space as the surface of the object. When unity wants to draw the objects in the world, it says:
+               "This impact effect is right here but also the object that is hit is at the exact same position." So unity doesn't
+               know which one should go in front of the other. To fix that, we can move the object slightly away from the surface by
+               multiplying the normal value by a tiny value and then adding it with raycastHit.point.
+            */
+
+            // We don't want our impact effects to stay in the world forever because they are taking up memory.
+
+            /* If we start adding a whole bunch of the bullet impact objects, we can keep layering them on top of each other and that
+               is because when we created them, the quads themselves have a mesh collider attached to them. We need to remove it.
+            */
+
+            GameObject bulletImpactObject = Instantiate(bulletImpact, raycastHit.point + (raycastHit.normal * .002f), Quaternion.LookRotation(raycastHit.normal, Vector3.up));
+            Destroy(bulletImpactObject, 10f);
+            
+
         }
     }
 }
