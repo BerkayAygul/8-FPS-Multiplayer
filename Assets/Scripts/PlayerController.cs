@@ -76,6 +76,22 @@ public class PlayerController : MonoBehaviour
     #endregion
     private float shotCounter;
 
+    #region comment
+    // Instead of using ammo, we are going to use weapon overheating.
+    // 1- The maximum level our heat can go up to. 
+    // 2- Heat adding up per shot.
+    // 3- How fast the meter will go back down to zero.
+    // 4- If the gun overheats, how fast the meter will go back down to zero.
+    // 5- This is going to keep track of what we currently have.
+    // 6- This is going to keep track of if the weapon is overheated. 
+    #endregion
+    public float maxOverheat = 10f;
+    public float overheatPerShot = 1f;
+    public float coolDownRate = 4f;
+    public float overheatCoolDownRate = 5f;
+    private float overheatCounter;
+    private bool overheated;
+
     void Start()
     {
         #region comment
@@ -222,28 +238,59 @@ public class PlayerController : MonoBehaviour
         #endregion
 
         #region comment
-        // If the player presses the left mouse button, shoot. 
+        // We want to shoot only if the weapon isn't overheated. 
         #endregion
-        if (Input.GetMouseButtonDown(0))
+        if (overheated == false)
         {
-            Shoot();
+            if (Input.GetMouseButtonDown(0))
+            {
+                Shoot();
+            }
+
+            #region comment
+            // If we are holding the left mouse click down. 
+            #endregion
+            if (Input.GetMouseButton(0))
+            {
+                shotCounter -= Time.deltaTime;
+
+                if (shotCounter <= 0)
+                {
+                    #region comment
+                    // shotCounter resets to the value of timeBetweenShots; 
+                    #endregion
+                    Shoot();
+                }
+            }
+            overheatCounter -= coolDownRate * Time.deltaTime;
+        }
+        #region comment
+        // If the weapon is overheated. 
+        #endregion
+        else
+        {
+            overheatCounter -= overheatCoolDownRate * Time.deltaTime;
+            if(overheatCounter <= 0)
+            {
+                #region comment
+                // In case it goes down zero. Does not work because before we start shooting, the counter is already going below zero.
+                // overheatCounter = 0; 
+                #endregion
+                overheated = false;
+            }
         }
 
         #region comment
-        // If we are holding the left mouse click down. 
+        // No matter what, it musn't go below zero. 
         #endregion
-        if (Input.GetMouseButton(0))
+        if(overheatCounter < 0)
         {
-            shotCounter -= Time.deltaTime;
-
-            if(shotCounter <= 0)
-            {
-                #region comment
-                // shotCounter resets to the value of timeBetweenShots; 
-                #endregion
-                Shoot();
-            }
+            overheatCounter = 0f;
         }
+        #region comment
+        // If the player presses the left mouse button, shoot. 
+        #endregion
+
 
         #region comment
         // If the player presses the escape button, free the cursor.
@@ -336,5 +383,15 @@ public class PlayerController : MonoBehaviour
         }
 
         shotCounter = timeBetweenShots;
+        overheatCounter += overheatPerShot;
+
+        if(overheatCounter >= maxOverheat)
+        {
+            #region comment
+            // In case it did go above the maximum value. 
+            #endregion
+            overheatCounter = maxOverheat;
+            overheated = true;
+        }
     }
 }
