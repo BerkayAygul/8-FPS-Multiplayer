@@ -67,6 +67,14 @@ public class PlayerController : MonoBehaviour
     public LayerMask groundLayers;
 
     public GameObject bulletImpact;
+    #region comment
+    // How long it's going to take between each shot; 
+    #endregion
+    public float timeBetweenShots = 0.1f;
+    #region comment
+    // We use this to handle shooting more than one shot; 
+    #endregion
+    private float shotCounter;
 
     void Start()
     {
@@ -221,6 +229,21 @@ public class PlayerController : MonoBehaviour
             Shoot();
         }
 
+        #region comment
+        // If we are holding the left mouse click down. 
+        #endregion
+        if (Input.GetMouseButton(0))
+        {
+            shotCounter -= Time.deltaTime;
+
+            if(shotCounter <= 0)
+            {
+                #region comment
+                // shotCounter resets to the value of timeBetweenShots; 
+                #endregion
+                Shoot();
+            }
+        }
 
         #region comment
         // If the player presses the escape button, free the cursor.
@@ -310,8 +333,8 @@ public class PlayerController : MonoBehaviour
 
             GameObject bulletImpactObject = Instantiate(bulletImpact, raycastHit.point + (raycastHit.normal * .002f), Quaternion.LookRotation(raycastHit.normal, Vector3.up));
             Destroy(bulletImpactObject, 10f);
-            
-
         }
+
+        shotCounter = timeBetweenShots;
     }
 }

@@ -1293,6 +1293,8 @@ MonoBehaviour:
   groundLayers:
     serializedVersion: 2
     m_Bits: 64
+  bulletImpact: {fileID: 3234598137738515823, guid: 1ae5c619eea35e54487820a070f7ff35, type: 3}
+  timeBetweenShots: 0.1
 --- !u!143 &1597372648
 CharacterController:
   m_ObjectHideFlags: 0
