@@ -104,6 +104,11 @@ public class PlayerController : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
 
         camera = Camera.main;
+
+        #region comment
+        // Slider is going to be at the maximum value (no overheat).
+        #endregion
+        UIController.instance.overheatSlider.maxValue = maxOverheat;
     }
 
     void Update()
@@ -242,6 +247,9 @@ public class PlayerController : MonoBehaviour
         #endregion
         if (overheated == false)
         {
+            #region comment
+            // If the player presses the left mouse button, shoot. 
+            #endregion
             if (Input.GetMouseButtonDown(0))
             {
                 Shoot();
@@ -277,6 +285,10 @@ public class PlayerController : MonoBehaviour
                 // overheatCounter = 0; 
                 #endregion
                 overheated = false;
+                #region comment
+                // Deactivate the message if the weapon isn't overheated anymore.
+                #endregion
+                UIController.instance.overheatedMessage.gameObject.SetActive(false);
             }
         }
 
@@ -287,10 +299,11 @@ public class PlayerController : MonoBehaviour
         {
             overheatCounter = 0f;
         }
-        #region comment
-        // If the player presses the left mouse button, shoot. 
-        #endregion
 
+        #region comment
+        // Current overheat value.
+        #endregion
+        UIController.instance.overheatSlider.value = overheatCounter;
 
         #region comment
         // If the player presses the escape button, free the cursor.
@@ -392,6 +405,11 @@ public class PlayerController : MonoBehaviour
             #endregion
             overheatCounter = maxOverheat;
             overheated = true;
+
+            #region comment
+            // If the weapon is overheated, alert the player.
+            #endregion
+            UIController.instance.overheatedMessage.gameObject.SetActive(true);
         }
     }
 }
