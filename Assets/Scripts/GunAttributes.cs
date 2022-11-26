@@ -12,4 +12,9 @@ public class GunAttributes : MonoBehaviour
     public bool isSniperRifle;
     public float timeBetweenShots = .1f;
     public float heatPerShot = 1f;
+
+    #region comment
+    // Create a muzzle flash after firing the weapon.
+    #endregion
+    public GameObject muzzleFlash;
 }

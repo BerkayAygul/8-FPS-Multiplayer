@@ -101,7 +101,19 @@ public class PlayerController : MonoBehaviour
     //These values are going to be used to switch between weapons.
     #endregion
     public GunAttributes[] allGuns;
-    private int selectedGun; 
+    private int selectedGun;
+
+    #region comment
+    /* VSync keeps the frame rate at a steady amount relative to what the screen is displaying.
+       When it is turned on, it is very easy to keep track of what is displayed.
+       If it is turned off, suddenly the frame rate can get really high and we might not able to see muzzle flashes on the correct basis.
+       We are going to use a float value to wait a tiny fraction of time and then deactivate the muzzle flash.
+       The display time value of the muzzle flash should last roughly one sixtieth of a second because our game is targeting running
+       60 frames a second.
+     */
+    #endregion
+    public float muzzleFlashDisplayTime = 0.01666667f;
+    private float muzzleFlashCounter;
 
     void Start()    
     {
@@ -251,12 +263,24 @@ public class PlayerController : MonoBehaviour
         {
             movement.y = jumpForce;
         }
-
-        movement.y += Physics.gravity.y * Time.deltaTime * gravityMod;
-        characterController.Move(movement * Time.deltaTime);
         #region comment
         //transform.position += movement * moveSpeed * Time.deltaTime; 
         #endregion
+        movement.y += Physics.gravity.y * Time.deltaTime * gravityMod;
+        characterController.Move(movement * Time.deltaTime);
+
+        #region comment
+        // Deactivate the muzzle flash object before firing.
+        // We are doing this here specifically because we want to activate muzzle flash for one whole frame of the game.
+        #endregion
+        if(allGuns[selectedGun].muzzleFlash.activeInHierarchy)
+        {
+            muzzleFlashCounter -= Time.deltaTime;
+            if(muzzleFlashCounter <= 0)
+            {
+                allGuns[selectedGun].muzzleFlash.SetActive(false);
+            }
+        }
 
         #region comment
         // We want to shoot only if the weapon isn't overheated. 
@@ -450,6 +474,11 @@ public class PlayerController : MonoBehaviour
             #endregion
             UIController.instance.overheatedMessage.gameObject.SetActive(true);
         }
+        #region comment
+        // Create a muzzle flash after firing the weapon (just before the function ends) at the display time value.
+        #endregion
+        allGuns[selectedGun].muzzleFlash.SetActive(true);
+        muzzleFlashCounter = muzzleFlashDisplayTime;
     }
 
     #region comment
@@ -463,5 +492,9 @@ public class PlayerController : MonoBehaviour
         }
 
         allGuns[selectedGun].gameObject.SetActive(true);
+        #region comment
+        // We want to make sure of muzzle flash doesn't occur when we switch the weapon.
+        #endregion
+        allGuns[selectedGun].muzzleFlash.SetActive(false);
     }
 }
