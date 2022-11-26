@@ -68,9 +68,10 @@ public class PlayerController : MonoBehaviour
 
     public GameObject bulletImpact;
     #region comment
-    // How long it's going to take between each shot; 
+    // How long it's going to take between each shot;
+    // Call the value from GunAttributes.cs instead. Each weapon has different values.
     #endregion
-    public float timeBetweenShots = 0.1f;
+    //public float timeBetweenShots = 0.1f;
     #region comment
     // We use this to handle shooting more than one shot; 
     #endregion
@@ -86,13 +87,23 @@ public class PlayerController : MonoBehaviour
     // 6- This is going to keep track of if the weapon is overheated. 
     #endregion
     public float maxOverheat = 10f;
-    public float overheatPerShot = 1f;
+    #region comment
+    // How long it's going to take between each shot;
+    // Call the value from GunAttributes.cs instead. Each weapon has different values.
+    #endregion
+    //public float overheatPerShot = 1f;
     public float coolDownRate = 4f;
     public float overheatCoolDownRate = 5f;
     private float overheatCounter;
     private bool overheated;
 
-    void Start()
+    #region comment 
+    //These values are going to be used to switch between weapons.
+    #endregion
+    public GunAttributes[] allGuns;
+    private int selectedGun; 
+
+    void Start()    
     {
         #region comment
         // The mouse shouldn't fly around the place where we're moving around. It should only move anywhere within the window.
@@ -109,6 +120,11 @@ public class PlayerController : MonoBehaviour
         // Slider is going to be at the maximum value (no overheat).
         #endregion
         UIController.instance.overheatSlider.maxValue = maxOverheat;
+
+        #region comment
+        // All weapons are disabled up on start. Use this function to activate the first gun.
+        #endregion
+        SwitchWeapon();
     }
 
     void Update()
@@ -258,7 +274,7 @@ public class PlayerController : MonoBehaviour
             #region comment
             // If we are holding the left mouse click down. 
             #endregion
-            if (Input.GetMouseButton(0))
+            if (Input.GetMouseButton(0) && allGuns[selectedGun].isAssaultRifle)
             {
                 shotCounter -= Time.deltaTime;
 
@@ -304,6 +320,29 @@ public class PlayerController : MonoBehaviour
         // Current overheat value.
         #endregion
         UIController.instance.overheatSlider.value = overheatCounter;
+
+        #region comment
+        // If the player scrolls the mouse wheel upwards or downwards, change the selectedGun value and call SwitchWeapon() function.
+        #endregion
+        if (Input.GetAxisRaw("Mouse ScrollWheel") > 0f)
+        {
+            selectedGun++;
+            if(selectedGun >= allGuns.Length)
+            {
+                selectedGun = 0;
+            }
+            SwitchWeapon();
+        }
+        else if(Input.GetAxisRaw("Mouse ScrollWheel") < 0f)
+        {
+            selectedGun--;
+            if(selectedGun <= 0)
+            {
+                selectedGun = allGuns.Length - 1;
+            }
+            SwitchWeapon();
+        }
+
 
         #region comment
         // If the player presses the escape button, free the cursor.
@@ -395,8 +434,8 @@ public class PlayerController : MonoBehaviour
             Destroy(bulletImpactObject, 10f);
         }
 
-        shotCounter = timeBetweenShots;
-        overheatCounter += overheatPerShot;
+        shotCounter = allGuns[selectedGun].timeBetweenShots;
+        overheatCounter += allGuns[selectedGun].heatPerShot;
 
         if(overheatCounter >= maxOverheat)
         {
@@ -411,5 +450,18 @@ public class PlayerController : MonoBehaviour
             #endregion
             UIController.instance.overheatedMessage.gameObject.SetActive(true);
         }
+    }
+
+    #region comment
+    // Before switching the weapon, deactive the current weapon. Then activate the newly selected gun.
+    #endregion
+    private void SwitchWeapon()
+    {
+        foreach (GunAttributes gun in allGuns)
+        {
+            gun.gameObject.SetActive(false);
+        }
+
+        allGuns[selectedGun].gameObject.SetActive(true);
     }
 }
