@@ -374,6 +374,22 @@ public class PlayerController : MonoBehaviour
             SwitchWeapon();
         }
 
+        #region comment
+        /* We want to make our player be able to switch weapons with keyboard keys since it will be hard to switch weapons with mouse scroll
+        ** if the player is using a laptop. */
+        #endregion
+        for(int i = 0; i < allGuns.Length; i++)
+        {
+            #region comment
+            // We do not want the player to press 0 on keyboard. So if the player presses number 1 key, we get the 0th element in the array. 
+            #endregion
+            if(Input.GetKeyDown((i + 1).ToString()))
+            {
+                selectedGun = i;
+                SwitchWeapon();
+            }
+        }
+
 
         #region comment
         // If the player presses the escape button, free the cursor.
