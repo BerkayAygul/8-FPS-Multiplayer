@@ -137,6 +137,13 @@ public class PlayerController : MonoBehaviour
         // All weapons are disabled up on start. Use this function to activate the first gun.
         #endregion
         SwitchWeapon();
+
+        #region comment
+        /* Whenever the player starts playing, we want to get a spawn point from the spawn manager and move the player to that point. */
+        #endregion
+        Transform playerSpawnPoint = SpawnManager.instance.GetSpawnPoint();
+        transform.position = playerSpawnPoint.position;
+        transform.rotation = playerSpawnPoint.rotation;
     }
 
     void Update()
