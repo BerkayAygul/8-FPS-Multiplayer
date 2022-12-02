@@ -48,6 +48,12 @@ public class ServerLauncher : MonoBehaviourPunCallbacks
     public GameObject errorPanel;
     public TMP_Text errorText;
 
+    public GameObject roomBrowserPanel;
+    public RoomBrowse theRoomButton;
+    #region comment
+    // We can change the length of a list dynamically. We are going to add our buttons to this list when a room gets created.
+    #endregion
+    public List<RoomBrowse> allRoomButtons = new List<RoomBrowse>();
     void Start()
     {
         #region comment
@@ -76,6 +82,7 @@ public class ServerLauncher : MonoBehaviourPunCallbacks
         createRoomPanel.SetActive(false);
         insideRoomPanel.SetActive(false);
         errorPanel.SetActive(false);
+        roomBrowserPanel.SetActive(false);
     }
 
     #region comment
@@ -187,5 +194,69 @@ public class ServerLauncher : MonoBehaviourPunCallbacks
     {
         CloseMenus();
         menuButtons.SetActive(true);
+    }
+
+    public void OpenRoomBrowser()
+    {
+        CloseMenus();
+        roomBrowserPanel.SetActive(true);
+    }
+
+    public void CloseRoomBrowser()
+    {
+        CloseMenus();
+        menuButtons.SetActive(true);
+    }
+
+    #region comment
+    /* This function will be called at any time there is a change to any list of rooms when we are in the lobby.
+    ** As we can see, the function takes a list of the room info's that are currently available. 
+    ** We want to make sure that every time we go out and list out all the rooms for the players to see, we want to destroy the previous    
+    ** versions of these buttons. */
+    #endregion
+    public override void OnRoomListUpdate(List<RoomInfo> roomList)
+    {
+        foreach (RoomBrowse rb in allRoomButtons)
+        {
+            Destroy(rb.gameObject);
+        }
+
+        allRoomButtons.Clear();
+
+        #region comment
+        // We are always going to create a copy of this inactive room button.
+        #endregion
+        theRoomButton.gameObject.SetActive(false);
+
+        #region comment
+        /* If there are maximum players in a room, then don't list the room.
+        ** If everybody leaves the room, the room becomes empty and it's no longer accessiable, so we are going to remove it from the list 
+        ** So, if our rooms are not removed from the list, then we are allowed to display it. Create a new room and set it's details. */ 
+        #endregion
+        for (int i = 0; i < roomList.Count; i++)
+        {
+            if (roomList[i].PlayerCount != roomList[i].MaxPlayers && !roomList[i].RemovedFromList)
+            {
+                RoomBrowse newButton = Instantiate(theRoomButton, theRoomButton.transform.parent);
+                newButton.SetButtonDetails(roomList[i]);
+                newButton.gameObject.SetActive(true);
+
+                #region comment
+                // Add the new room button to the list
+                #endregion
+                allRoomButtons.Add(newButton);
+            }
+        }
+    }
+
+    #region comment
+    // This is what we are going to use to connect to a room.
+    #endregion
+    public void JoinRoom(RoomInfo inputInfo)
+    {
+        PhotonNetwork.JoinRoom(inputInfo.Name);
+        CloseMenus();
+        loadingText.text = "Joining Room";
+        loadingPanel.SetActive(true);
     }
 }

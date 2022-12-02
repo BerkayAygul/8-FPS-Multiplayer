@@ -995,9 +995,29 @@ PrefabInstance:
       propertyPath: m_text
       value: Room Name
       objectReference: {fileID: 0}
+    - target: {fileID: 1895062211765946452, guid: f2811fc90ff0e5543b7a0e1c1be046bf, type: 3}
+      propertyPath: m_fontStyle
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4696488346674633432, guid: f2811fc90ff0e5543b7a0e1c1be046bf, type: 3}
       propertyPath: m_Name
       value: Room Button
+      objectReference: {fileID: 0}
+    - target: {fileID: 5405301098485477597, guid: f2811fc90ff0e5543b7a0e1c1be046bf, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 988839059}
+    - target: {fileID: 5405301098485477597, guid: f2811fc90ff0e5543b7a0e1c1be046bf, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: OpenRoom
+      objectReference: {fileID: 0}
+    - target: {fileID: 5405301098485477597, guid: f2811fc90ff0e5543b7a0e1c1be046bf, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: RoomBrowse, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 5405301098485477597, guid: f2811fc90ff0e5543b7a0e1c1be046bf, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
     - target: {fileID: 6119988157259794213, guid: f2811fc90ff0e5543b7a0e1c1be046bf, type: 3}
       propertyPath: m_Pivot.x
@@ -1177,6 +1197,17 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 238773502}
   m_CullTransparentMesh: 1
+--- !u!114 &242706120 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1895062211765946452, guid: f2811fc90ff0e5543b7a0e1c1be046bf, type: 3}
+  m_PrefabInstance: {fileID: 143132616}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &268101404
 GameObject:
   m_ObjectHideFlags: 0
@@ -2251,6 +2282,24 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 6119988157259794213, guid: f2811fc90ff0e5543b7a0e1c1be046bf, type: 3}
   m_PrefabInstance: {fileID: 143132616}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &988839058 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4696488346674633432, guid: f2811fc90ff0e5543b7a0e1c1be046bf, type: 3}
+  m_PrefabInstance: {fileID: 143132616}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &988839059
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 988839058}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c27a33392b60e844694d478a1d3cef16, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  roomButtonText: {fileID: 242706120}
 --- !u!1 &1134041072
 GameObject:
   m_ObjectHideFlags: 0
@@ -2351,7 +2400,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1895062211765946452, guid: f2811fc90ff0e5543b7a0e1c1be046bf, type: 3}
       propertyPath: m_text
-      value: LEAVE ROOM
+      value: LEAVE
       objectReference: {fileID: 0}
     - target: {fileID: 4696488346674633432, guid: f2811fc90ff0e5543b7a0e1c1be046bf, type: 3}
       propertyPath: m_Name
@@ -2363,7 +2412,7 @@ PrefabInstance:
       objectReference: {fileID: 1971985194}
     - target: {fileID: 5405301098485477597, guid: f2811fc90ff0e5543b7a0e1c1be046bf, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: LeaveRoom
+      value: CloseRoomBrowser
       objectReference: {fileID: 0}
     - target: {fileID: 5405301098485477597, guid: f2811fc90ff0e5543b7a0e1c1be046bf, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
@@ -3601,6 +3650,9 @@ MonoBehaviour:
   roomNameText: {fileID: 604643654}
   errorPanel: {fileID: 637095719}
   errorText: {fileID: 58530116}
+  roomBrowserPanel: {fileID: 1997078695}
+  theRoomButton: {fileID: 988839059}
+  allRoomButtons: []
 --- !u!1 &1997078695
 GameObject:
   m_ObjectHideFlags: 0
@@ -9010,6 +9062,22 @@ PrefabInstance:
     - target: {fileID: 4696488346674633432, guid: f2811fc90ff0e5543b7a0e1c1be046bf, type: 3}
       propertyPath: m_Name
       value: Find Room Button
+      objectReference: {fileID: 0}
+    - target: {fileID: 5405301098485477597, guid: f2811fc90ff0e5543b7a0e1c1be046bf, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1971985194}
+    - target: {fileID: 5405301098485477597, guid: f2811fc90ff0e5543b7a0e1c1be046bf, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: OpenRoomBrowser
+      objectReference: {fileID: 0}
+    - target: {fileID: 5405301098485477597, guid: f2811fc90ff0e5543b7a0e1c1be046bf, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: ServerLauncher, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 5405301098485477597, guid: f2811fc90ff0e5543b7a0e1c1be046bf, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
     - target: {fileID: 6119988157259794213, guid: f2811fc90ff0e5543b7a0e1c1be046bf, type: 3}
       propertyPath: m_Pivot.x
