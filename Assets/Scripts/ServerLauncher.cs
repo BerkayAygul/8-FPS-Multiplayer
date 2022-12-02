@@ -54,6 +54,8 @@ public class ServerLauncher : MonoBehaviourPunCallbacks
     // We can change the length of a list dynamically. We are going to add our buttons to this list when a room gets created.
     #endregion
     public List<RoomBrowse> allRoomButtons = new List<RoomBrowse>();
+
+    private Dictionary<string, RoomInfo> cachedRoomsList = new Dictionary<string, RoomInfo>();
     void Start()
     {
         #region comment
@@ -105,8 +107,14 @@ public class ServerLauncher : MonoBehaviourPunCallbacks
     #endregion
     public override void OnJoinedLobby()
     {
+        cachedRoomsList.Clear();
         CloseMenus();
         menuButtons.SetActive(true);
+    }
+
+    public override void OnLeftLobby()
+    {
+        cachedRoomsList.Clear();
     }
 
     #region comment
@@ -210,45 +218,61 @@ public class ServerLauncher : MonoBehaviourPunCallbacks
 
     #region comment
     /* This function will be called at any time there is a change to any list of rooms when we are in the lobby.
-    ** As we can see, the function takes a list of the room info's that are currently available. 
-    ** We want to make sure that every time we go out and list out all the rooms for the players to see, we want to destroy the previous    
-    ** versions of these buttons. */
+    ** As we can see, the function takes a list of the room info's that are currently available. */
     #endregion
     public override void OnRoomListUpdate(List<RoomInfo> roomList)
     {
+        UpdateCachedRoomList(roomList);
+    }
+
+    public void UpdateCachedRoomList(List<RoomInfo> roomList)
+    {
+        #region comment
+        // Get room info list and for every element, check if the room is removed. If the room isn't removed get it's name to dictionary.
+        #endregion
+        for (int i = 0; i < roomList.Count; i++)
+        {
+            RoomInfo info = roomList[i];
+            if (info.RemovedFromList)
+            {
+                cachedRoomsList.Remove(info.Name);
+            }
+            else
+            {
+                cachedRoomsList[info.Name] = info;
+            }
+        }
+        RoomListButtonUpdate(cachedRoomsList);
+    }
+
+    public void RoomListButtonUpdate(Dictionary<string, RoomInfo> cachedRoomList)
+    {
+        #region comment
+        // Have to destroy every button object then add it again otherwise buttons will duplicate
+        #endregion
         foreach (RoomBrowse rb in allRoomButtons)
         {
             Destroy(rb.gameObject);
         }
-
         allRoomButtons.Clear();
 
-        #region comment
-        // We are always going to create a copy of this inactive room button.
-        #endregion
         theRoomButton.gameObject.SetActive(false);
-
         #region comment
-        /* If there are maximum players in a room, then don't list the room.
-        ** If everybody leaves the room, the room becomes empty and it's no longer accessiable, so we are going to remove it from the list 
-        ** So, if our rooms are not removed from the list, then we are allowed to display it. Create a new room and set it's details. */ 
+        // Get the cached room dictionary and foreach room in this dictionary create a new button and add it to allRoomButtons list. 
         #endregion
-        for (int i = 0; i < roomList.Count; i++)
+        foreach (KeyValuePair<string, RoomInfo> roomInfo in cachedRoomList)
         {
-            if (roomList[i].PlayerCount != roomList[i].MaxPlayers && !roomList[i].RemovedFromList)
-            {
-                RoomBrowse newButton = Instantiate(theRoomButton, theRoomButton.transform.parent);
-                newButton.SetButtonDetails(roomList[i]);
-                newButton.gameObject.SetActive(true);
-
-                #region comment
-                // Add the new room button to the list
-                #endregion
-                allRoomButtons.Add(newButton);
-            }
+            RoomBrowse newButton = Instantiate(theRoomButton, theRoomButton.transform.parent);
+            newButton.SetButtonDetails(roomInfo.Value);
+            newButton.gameObject.SetActive(true);
+            allRoomButtons.Add(newButton);
         }
     }
 
+    public override void OnDisconnected(DisconnectCause cause)
+    {
+        cachedRoomsList.Clear();
+    }
     #region comment
     // This is what we are going to use to connect to a room.
     #endregion
