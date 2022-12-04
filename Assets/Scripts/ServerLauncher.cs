@@ -283,4 +283,9 @@ public class ServerLauncher : MonoBehaviourPunCallbacks
         loadingText.text = "Joining Room";
         loadingPanel.SetActive(true);
     }
+
+    public void QuitGame()
+    {
+        Application.Quit();
+    }
 }

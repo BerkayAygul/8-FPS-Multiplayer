@@ -2185,6 +2185,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: Quit Game Button
       objectReference: {fileID: 0}
+    - target: {fileID: 5405301098485477597, guid: f2811fc90ff0e5543b7a0e1c1be046bf, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1971985194}
+    - target: {fileID: 5405301098485477597, guid: f2811fc90ff0e5543b7a0e1c1be046bf, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: QuitGame
+      objectReference: {fileID: 0}
+    - target: {fileID: 5405301098485477597, guid: f2811fc90ff0e5543b7a0e1c1be046bf, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: ServerLauncher, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 5405301098485477597, guid: f2811fc90ff0e5543b7a0e1c1be046bf, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
     - target: {fileID: 6119988157259794213, guid: f2811fc90ff0e5543b7a0e1c1be046bf, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
