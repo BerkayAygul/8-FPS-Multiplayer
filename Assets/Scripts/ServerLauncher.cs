@@ -44,6 +44,8 @@ public class ServerLauncher : MonoBehaviourPunCallbacks
 
     public GameObject insideRoomPanel;
     public TMP_Text roomNameText;
+    public TMP_Text playerNameLabel;
+    private List<TMP_Text> allPlayerNicknames = new List<TMP_Text>();
 
     public GameObject errorPanel;
     public TMP_Text errorText;
@@ -56,6 +58,13 @@ public class ServerLauncher : MonoBehaviourPunCallbacks
     public List<RoomBrowse> allRoomButtons = new List<RoomBrowse>();
 
     private Dictionary<string, RoomInfo> cachedRoomsList = new Dictionary<string, RoomInfo>();
+
+    public GameObject createNicknamePanel;
+    public TMP_InputField nicknameInput;
+    #region comment
+    // If the player has set a nickname, we don't want to go through the create nickname panel again.
+    #endregion
+    private bool hasSetNickname;
     void Start()
     {
         #region comment
@@ -85,6 +94,7 @@ public class ServerLauncher : MonoBehaviourPunCallbacks
         insideRoomPanel.SetActive(false);
         errorPanel.SetActive(false);
         roomBrowserPanel.SetActive(false);
+        createNicknamePanel.SetActive(false);
     }
 
     #region comment
@@ -110,6 +120,30 @@ public class ServerLauncher : MonoBehaviourPunCallbacks
         cachedRoomsList.Clear();
         CloseMenus();
         menuButtons.SetActive(true);
+
+        #region comment
+        // Players will have a random numerical nickname when they join the lobby.
+        #endregion
+        PhotonNetwork.NickName = Random.Range(0, 1000).ToString();
+
+        if(!hasSetNickname)
+        {
+            CloseMenus();
+            createNicknamePanel.SetActive(true);
+
+            if(PlayerPrefs.HasKey("playerName"))
+            {
+                nicknameInput.text = PlayerPrefs.GetString("playerName");
+            }
+        }
+        #region comment
+        // If we did set up a nickname but we want to change it, we need to make sure it's staying the correct value.
+        #endregion
+        else
+        {
+            PhotonNetwork.NickName = PlayerPrefs.GetString("playerName");
+        }
+
     }
 
     public override void OnLeftLobby()
@@ -160,6 +194,8 @@ public class ServerLauncher : MonoBehaviourPunCallbacks
         insideRoomPanel.SetActive(true);
 
         roomNameText.text = PhotonNetwork.CurrentRoom.Name;
+
+        ListAllPlayers();
     }
 
     #region comment
@@ -282,6 +318,81 @@ public class ServerLauncher : MonoBehaviourPunCallbacks
         CloseMenus();
         loadingText.text = "Joining Room";
         loadingPanel.SetActive(true);
+    }
+
+    #region comment
+    // Use this function in OnJoinedRoom() to display the players.
+    #endregion
+    private void ListAllPlayers()
+    {
+        #region comment
+        // After joining the room, delete the array elements.
+        #endregion
+        foreach (TMP_Text playerNickname in allPlayerNicknames)
+        {
+            Destroy(playerNickname.gameObject);
+        }
+        allPlayerNicknames.Clear();
+
+        #region comment
+        /* The reason we do this is simply because we don't want to loop through this array constantly because this is something that
+        ** we have to get information from the network. So that will add a delay everytime we're trying to get that information from
+        ** the network. Instead, we just get the information once and store it in here then act on that information. 
+        ** Get the list of the players and add it to a created Photon.Realtime.Player array. */
+        #endregion
+        Player[] players = PhotonNetwork.PlayerList;
+        for (int i = 0; i < players.Length; i++)
+        {
+            TMP_Text newPlayerLabel = Instantiate(playerNameLabel, playerNameLabel.transform.parent);
+            newPlayerLabel.text = players[i].NickName;
+            newPlayerLabel.gameObject.SetActive(true);
+
+            #region comment
+            // Add every new player label to the created array.
+            #endregion
+            allPlayerNicknames.Add(newPlayerLabel);
+        }
+    }
+
+    #region comment
+    /* The player list gets updated for only the person who joins the room later because we only use OnJoinedRoom().
+    ** We are going to fix this buy using OnPlayerEnteredRoom() and OnPlayerLeftRoom() functions. */
+    #endregion
+    public override void OnPlayerEnteredRoom(Player newPlayer)
+    {
+        TMP_Text newPlayerLabel = Instantiate(playerNameLabel, playerNameLabel.transform.parent);
+        newPlayerLabel.text = newPlayer.NickName;
+        newPlayerLabel.gameObject.SetActive(true);
+        allPlayerNicknames.Add(newPlayerLabel);
+
+    }
+
+    public override void OnPlayerLeftRoom(Player otherPlayer)
+    {
+        #region comment
+        /* Having to search through both of the PhotonNetwork.PlayerList and allPlayerNicknames lists and compare them to find who left
+        ** the room takes a little bit of time and there is a much more simple way to do that. 
+        ** When someone leaves the room, relist all the players. Because we destroy them all and add them again in this function. */
+        #endregion
+        ListAllPlayers();
+    }
+
+    public void SetNickname()
+    {
+        if(!string.IsNullOrEmpty(nicknameInput.text))
+        {
+            PhotonNetwork.NickName = nicknameInput.text;
+
+            #region comment
+            /* We do not want write our nickname everytime we open the game so we need to store nicknames in our system.
+            ** To save small things like strings, we can use PlayerPrefs. */
+            #endregion
+            PlayerPrefs.SetString("playerName", nicknameInput.text);
+
+            CloseMenus();
+            menuButtons.SetActive(true);
+            hasSetNickname = true;
+        }
     }
 
     public void QuitGame()
