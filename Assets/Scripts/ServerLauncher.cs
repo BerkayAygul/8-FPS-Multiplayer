@@ -72,6 +72,11 @@ public class ServerLauncher : MonoBehaviourPunCallbacks
     public string levelNameToPlay;
     public GameObject startGameButton;
 
+    #region comment
+    /* We are going to be building this game and connect a lot. So, to cut down on our time we are going to create a test button. */
+    #endregion
+    public GameObject roomTestButton;
+
     void Start()
     {
         #region comment
@@ -92,6 +97,12 @@ public class ServerLauncher : MonoBehaviourPunCallbacks
         ** We set up our App Id Pun value that we get from Photon Pun website. */
         #endregion
         PhotonNetwork.ConnectUsingSettings();
+
+#if UNITY_EDITOR
+        roomTestButton.SetActive(true);
+#endif
+
+
     }
     void CloseMenus()
     {
@@ -445,6 +456,17 @@ public class ServerLauncher : MonoBehaviourPunCallbacks
         {
             startGameButton.SetActive(false);
         }
+    }
+
+    public void QuickJoin()
+    {
+        RoomOptions options = new RoomOptions();
+        options.MaxPlayers = 8;
+
+        PhotonNetwork.CreateRoom("Test");
+        CloseMenus();
+        loadingText.text = "Creating Room";
+        loadingPanel.SetActive(true);
     }
 
     public void QuitGame()
