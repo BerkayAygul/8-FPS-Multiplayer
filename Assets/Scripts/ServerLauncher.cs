@@ -65,6 +65,13 @@ public class ServerLauncher : MonoBehaviourPunCallbacks
     // If the player has set a nickname, we don't want to go through the create nickname panel again.
     #endregion
     private bool hasSetNickname;
+
+    #region comment
+    // This will be the name of the level we want to go.
+    #endregion
+    public string levelNameToPlay;
+    public GameObject startGameButton;
+
     void Start()
     {
         #region comment
@@ -110,6 +117,16 @@ public class ServerLauncher : MonoBehaviourPunCallbacks
     {
         PhotonNetwork.JoinLobby();
         loadingText.text = "Joining Lobby...";
+
+        #region comment
+        /* One thing we want to be able to do is when we click the start game button, load into a different scene.
+        ** Also when we click the start game button, we want to tell all the other players that we're all loading into this next scene.
+        ** After we join the lobby we are going to say AutomaticallySyncScene = true, and this will allow Photon Network to be able to
+        ** tell us which scene we should be going to. So whether we are joining a room or if we are the one controlling the room and
+        ** telling to start the game, this will control the scene that we are actually going to. Note that this isn't going to be enough
+        ** to play the game concurrently because all the other players are going to play their own seperate version of the game. */
+        #endregion
+        PhotonNetwork.AutomaticallySyncScene = true;
     }
 
     #region comment
@@ -196,6 +213,21 @@ public class ServerLauncher : MonoBehaviourPunCallbacks
         roomNameText.text = PhotonNetwork.CurrentRoom.Name;
 
         ListAllPlayers();
+
+        #region comment
+        /* The first player that joins a room is called the master player, and if that player leaves, then master gets sent to another
+        ** player that's in the room. Only the master player can actually start the game. If anyone else tries to start the game, 
+        ** it'll just load them into their own world. So, we are going to create a referance to the start game button. We need to check
+        ** and see if we are the master player. If we are, we're allowed to show that button and if we're not, we should hide the button. */
+        #endregion
+        if(PhotonNetwork.IsMasterClient)
+        {
+            startGameButton.SetActive(true);
+        }
+        else
+        {
+            startGameButton.SetActive(false);
+        }
     }
 
     #region comment
@@ -392,6 +424,26 @@ public class ServerLauncher : MonoBehaviourPunCallbacks
             CloseMenus();
             menuButtons.SetActive(true);
             hasSetNickname = true;
+        }
+    }
+
+    public void StartGame()
+    {
+        PhotonNetwork.LoadLevel(levelNameToPlay);
+    }
+
+    #region comment
+    // If the master player leaves the room or the game, we need to assign another player as master player and the master can start the game.
+    #endregion
+    public override void OnMasterClientSwitched(Player newMasterClient)
+    {
+        if (PhotonNetwork.IsMasterClient)
+        {
+            startGameButton.SetActive(true);
+        }
+        else
+        {
+            startGameButton.SetActive(false);
         }
     }
 
