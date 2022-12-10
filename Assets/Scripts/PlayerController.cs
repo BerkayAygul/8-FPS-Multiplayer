@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Photon.Pun;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : MonoBehaviourPunCallbacks
 {
     public Transform playerViewPoint;
     public float mouseSensitivity = 1f;
@@ -141,269 +142,282 @@ public class PlayerController : MonoBehaviour
         #region comment
         /* Whenever the player starts playing, we want to get a spawn point from the spawn manager and move the player to that point. */
         #endregion
-        Transform playerSpawnPoint = SpawnManager.instance.GetSpawnPoint();
-        transform.position = playerSpawnPoint.position;
-        transform.rotation = playerSpawnPoint.rotation;
+        #region comment
+        /* We do not need to use these anymore since we are using PlayerSpawner.cs.
+        ** We do not want each player to get their spawn point themselves. */
+        #endregion
+        /*
+        /* Transform playerSpawnPoint = SpawnManager.instance.GetSpawnPoint();
+        ** transform.position = playerSpawnPoint.position;
+        ** transform.rotation = playerSpawnPoint.rotation; */
     }
 
     void Update()
     {
-        mouseInput = new Vector2(Input.GetAxisRaw("Mouse X"), Input.GetAxisRaw("Mouse Y")) * mouseSensitivity;
-
         #region comment
-        // Quarternion.Euler basically means we can treat this as a vector 3 object, so we can just affect it based on the x, y, z.
-        // eulerAngles are basically means the vector 3 version of the rotation angles.
-        // We do not want to change x and z values. Leave it whatever the transform rotation currently is.
-        // The player will be able to look right and left. 
+        // We are going to use Photon View information before doing anything. So we can be sure of controlling one player.
         #endregion
-        transform.rotation = Quaternion.Euler(transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y + mouseInput.x, transform.rotation.eulerAngles.z);
-
-        #region comment
-        // We do not want to change y and z values. Leave it whatever the transform rotation currently is.
-        // The player will be able to look up and down.
-        // The view is currently inverted, so we have to fix this by taking the minus value of the verticalRotationStore value.
-        /* The camera can flip, so we have to fix this by clamping the value between some values (to set it between certain degrees).
-        // But because we are dealing with quaternions, there is another issue.
-        // When we look up a little bit, once the x rotation value gets below zero, the rotation steps back to 60. */
-        /* We can't directly clamp the x value of playerviewpoint. Behind the scenes of unity and its internal systems, we can
-        // see the actual values of rotation by using Debug.log. We have to clamp the value by using verticalRotationStore. */
-        // Flipping the camera should be optional, so we will use a bool value to make it optional. 
-        #endregion
-
-        verticalRotationStore = verticalRotationStore + mouseInput.y;
-        verticalRotationStore = Mathf.Clamp(verticalRotationStore, -60, 60);
-
-        if(invertLook == true)
+        if (photonView.IsMine)
         {
-            playerViewPoint.rotation = Quaternion.Euler(verticalRotationStore, playerViewPoint.rotation.eulerAngles.y, playerViewPoint.rotation.eulerAngles.z);
-        }
-        else
-        {
-            playerViewPoint.rotation = Quaternion.Euler(-verticalRotationStore, playerViewPoint.rotation.eulerAngles.y, playerViewPoint.rotation.eulerAngles.z);
-        }
 
 
-        #region comment
-        /* Wrong use:
-           playerViewPoint.rotation = Quaternion.Euler(Mathf.Clamp(playerViewPoint.rotation.eulerAngles.x - mouseInput.y, -60f, 60f)
-        */
-        #endregion
+            mouseInput = new Vector2(Input.GetAxisRaw("Mouse X"), Input.GetAxisRaw("Mouse Y")) * mouseSensitivity;
 
-
-        #region comment
-        // Time.deltaTime is how long it takes for each frame update to happen. 
-        // If our game is running at 60 frames a second, this will be one divided by 60.
-        /* If we said we could make our move speed much smaller, that would work but at different frame rates, the player would move
-        ** at different speeds. */
-        /* If we look sideways and press forward, the player will still go in the same direction that we had before, which is wrong.
-        ** We are going to use transform.forward and transform.right to fix this. */
-        // We are moving a lot faster when we move in a diagonal action. We can fix that by normalizing the vector. 
-        #endregion
-        moveDirection = new Vector3(Input.GetAxisRaw("Horizontal"), 0f, Input.GetAxisRaw("Vertical"));
-
-        if(Input.GetKey(KeyCode.LeftShift))
-        {
-            activeMoveSpeed = runSpeed;
-        }
-        else
-        {
-            activeMoveSpeed = moveSpeed;
-        }
-
-        #region comment
-
-        // When we start applying gravity to our player, we are going to make some changes to the y value of the movement.    
-        // We don't want movement to get multiplied by the value of the y-axis of activeMoveSpeed.
-        // We shouldn't use activeMoveSpeed in characterController.Move().
-        // ----------------------------------------------------------------------------------------------------------------------------
-        // Add gravity to y axis of movement.
-        // A problem causes fall down speed to be really slow.
-        /* When we are moving the player around in our movement phase here, we are controlling the z and x axes.
-           But for both of those they have a default value for Y of zero. So what's happening here is both of these are
-           setting the y movement value to be zero. Then we're taking away gravity.
-           As things happen in the real world, when you start to fall, you start falling slowly,
-           but you fall faster and faster over time.
-           So what we need to do is make sure that the Y value for these isn't reset. 
-           We have to store the current Y movement that we have, which will be the velocity of our player.
-           We are going to create a disposable float value that we will call y velocity, before applying any movement. 
-        */
-        /* If we open debug, we can see that y velocity is continually growing faster and faster, we do not want our player
-           constantly falling down to the ground like that. We are going to add an extra check to fix that issue. 
-        */
-        #endregion
-        float yVelocity = movement.y;
-        movement = ((transform.forward * moveDirection.z) + (transform.right * moveDirection.x)).normalized * activeMoveSpeed;
-        movement.y = yVelocity;
-        if(characterController.isGrounded)
-        {
             #region comment
-            // y movement should be 0 if the player is on the ground. 
+            // Quarternion.Euler basically means we can treat this as a vector 3 object, so we can just affect it based on the x, y, z.
+            // eulerAngles are basically means the vector 3 version of the rotation angles.
+            // We do not want to change x and z values. Leave it whatever the transform rotation currently is.
+            // The player will be able to look right and left. 
             #endregion
-            movement.y = 0;
-        }
+            transform.rotation = Quaternion.Euler(transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y + mouseInput.x, transform.rotation.eulerAngles.z);
 
-        #region comment
-        // Jump
-        /* The ‘get button’ functions work similarly to the ‘get key’ functions, except you cannot use KeyCodes, 
-           own buttons in the input manager.This is the recommended by Unity and can be quite powerful as it allows 
-           developers to map custom joystick / D-pad buttons. */
-        /* It feels odd how fast the player falls. Although we have represented real world gravity, it still feels slow.
-           So what are we going to do is modify the amount of gravity that's beign applied to our player. 
-           Multiply movement.y with gravityMod*/
-        /* The player is able to jump whenever he presses the button. 
-           The player should only jump whenever the player is on the ground.
-           It's not always 100 percent consistent with is.grounded check (we can check is.grounded with Debug.Log).
-           We are also going to create a recast, which will basically create a line that goes straight down from the player
-           (a certain distance from the player), and it will check within this distance is the ground here. */
-        /* A raycast does an invisible line and checks if it interacts with anything along that line.
-           If it hits anything along the invisible line, isGrounded is true, otherwise it is false.
-           First parameter = where do we want our raycast to start,
-           second parameter = what position our raycast is going to start,
-           third parameter = how long we want it to go (adjust the value if the player can't jump on the edges),
-           fourth parameter = the layer we are want to check.
-         */
-        #endregion
+            #region comment
+            // We do not want to change y and z values. Leave it whatever the transform rotation currently is.
+            // The player will be able to look up and down.
+            // The view is currently inverted, so we have to fix this by taking the minus value of the verticalRotationStore value.
+            /* The camera can flip, so we have to fix this by clamping the value between some values (to set it between certain degrees).
+            // But because we are dealing with quaternions, there is another issue.
+            // When we look up a little bit, once the x rotation value gets below zero, the rotation steps back to 60. */
+            /* We can't directly clamp the x value of playerviewpoint. Behind the scenes of unity and its internal systems, we can
+            // see the actual values of rotation by using Debug.log. We have to clamp the value by using verticalRotationStore. */
+            // Flipping the camera should be optional, so we will use a bool value to make it optional. 
+            #endregion
 
-        isGrounded = Physics.Raycast(groundCheckPoint.position, Vector3.down, .5f, groundLayers);
+            verticalRotationStore = verticalRotationStore + mouseInput.y;
+            verticalRotationStore = Mathf.Clamp(verticalRotationStore, -60, 60);
 
-        if (Input.GetButtonDown("Jump") && isGrounded)
-        {
-            movement.y = jumpForce;
-        }
-        #region comment
-        //transform.position += movement * moveSpeed * Time.deltaTime; 
-        #endregion
-        movement.y += Physics.gravity.y * Time.deltaTime * gravityMod;
-        characterController.Move(movement * Time.deltaTime);
-
-        #region comment
-        // Deactivate the muzzle flash object before firing.
-        // We are doing this here specifically because we want to activate muzzle flash for one whole frame of the game.
-        #endregion
-        if(allGuns[selectedGun].muzzleFlash.activeInHierarchy)
-        {
-            muzzleFlashCounter -= Time.deltaTime;
-            if(muzzleFlashCounter <= 0)
+            if (invertLook == true)
             {
-                allGuns[selectedGun].muzzleFlash.SetActive(false);
+                playerViewPoint.rotation = Quaternion.Euler(verticalRotationStore, playerViewPoint.rotation.eulerAngles.y, playerViewPoint.rotation.eulerAngles.z);
             }
-        }
-
-        #region comment
-        // We want to shoot only if the weapon isn't overheated. 
-        #endregion
-        if (overheated == false)
-        {
-            #region comment
-            // If the player presses the left mouse button, shoot. 
-            #endregion
-            if (Input.GetMouseButtonDown(0))
+            else
             {
-                Shoot();
+                playerViewPoint.rotation = Quaternion.Euler(-verticalRotationStore, playerViewPoint.rotation.eulerAngles.y, playerViewPoint.rotation.eulerAngles.z);
+            }
+
+
+            #region comment
+            /* Wrong use:
+               playerViewPoint.rotation = Quaternion.Euler(Mathf.Clamp(playerViewPoint.rotation.eulerAngles.x - mouseInput.y, -60f, 60f)
+            */
+            #endregion
+
+
+            #region comment
+            // Time.deltaTime is how long it takes for each frame update to happen. 
+            // If our game is running at 60 frames a second, this will be one divided by 60.
+            /* If we said we could make our move speed much smaller, that would work but at different frame rates, the player would move
+            ** at different speeds. */
+            /* If we look sideways and press forward, the player will still go in the same direction that we had before, which is wrong.
+            ** We are going to use transform.forward and transform.right to fix this. */
+            // We are moving a lot faster when we move in a diagonal action. We can fix that by normalizing the vector. 
+            #endregion
+            moveDirection = new Vector3(Input.GetAxisRaw("Horizontal"), 0f, Input.GetAxisRaw("Vertical"));
+
+            if (Input.GetKey(KeyCode.LeftShift))
+            {
+                activeMoveSpeed = runSpeed;
+            }
+            else
+            {
+                activeMoveSpeed = moveSpeed;
             }
 
             #region comment
-            // If we are holding the left mouse click down. 
-            #endregion
-            if (Input.GetMouseButton(0) && allGuns[selectedGun].isAssaultRifle)
-            {
-                shotCounter -= Time.deltaTime;
 
-                if (shotCounter <= 0)
+            // When we start applying gravity to our player, we are going to make some changes to the y value of the movement.    
+            // We don't want movement to get multiplied by the value of the y-axis of activeMoveSpeed.
+            // We shouldn't use activeMoveSpeed in characterController.Move().
+            // ----------------------------------------------------------------------------------------------------------------------------
+            // Add gravity to y axis of movement.
+            // A problem causes fall down speed to be really slow.
+            /* When we are moving the player around in our movement phase here, we are controlling the z and x axes.
+               But for both of those they have a default value for Y of zero. So what's happening here is both of these are
+               setting the y movement value to be zero. Then we're taking away gravity.
+               As things happen in the real world, when you start to fall, you start falling slowly,
+               but you fall faster and faster over time.
+               So what we need to do is make sure that the Y value for these isn't reset. 
+               We have to store the current Y movement that we have, which will be the velocity of our player.
+               We are going to create a disposable float value that we will call y velocity, before applying any movement. 
+            */
+            /* If we open debug, we can see that y velocity is continually growing faster and faster, we do not want our player
+               constantly falling down to the ground like that. We are going to add an extra check to fix that issue. 
+            */
+            #endregion
+            float yVelocity = movement.y;
+            movement = ((transform.forward * moveDirection.z) + (transform.right * moveDirection.x)).normalized * activeMoveSpeed;
+            movement.y = yVelocity;
+            if (characterController.isGrounded)
+            {
+                #region comment
+                // y movement should be 0 if the player is on the ground. 
+                #endregion
+                movement.y = 0;
+            }
+
+            #region comment
+            // Jump
+            /* The ‘get button’ functions work similarly to the ‘get key’ functions, except you cannot use KeyCodes, 
+               own buttons in the input manager.This is the recommended by Unity and can be quite powerful as it allows 
+               developers to map custom joystick / D-pad buttons. */
+            /* It feels odd how fast the player falls. Although we have represented real world gravity, it still feels slow.
+               So what are we going to do is modify the amount of gravity that's beign applied to our player. 
+               Multiply movement.y with gravityMod*/
+            /* The player is able to jump whenever he presses the button. 
+               The player should only jump whenever the player is on the ground.
+               It's not always 100 percent consistent with is.grounded check (we can check is.grounded with Debug.Log).
+               We are also going to create a recast, which will basically create a line that goes straight down from the player
+               (a certain distance from the player), and it will check within this distance is the ground here. */
+            /* A raycast does an invisible line and checks if it interacts with anything along that line.
+               If it hits anything along the invisible line, isGrounded is true, otherwise it is false.
+               First parameter = where do we want our raycast to start,
+               second parameter = what position our raycast is going to start,
+               third parameter = how long we want it to go (adjust the value if the player can't jump on the edges),
+               fourth parameter = the layer we are want to check.
+             */
+            #endregion
+
+            isGrounded = Physics.Raycast(groundCheckPoint.position, Vector3.down, .5f, groundLayers);
+
+            if (Input.GetButtonDown("Jump") && isGrounded)
+            {
+                movement.y = jumpForce;
+            }
+            #region comment
+            //transform.position += movement * moveSpeed * Time.deltaTime; 
+            #endregion
+            movement.y += Physics.gravity.y * Time.deltaTime * gravityMod;
+            characterController.Move(movement * Time.deltaTime);
+
+            #region comment
+            // Deactivate the muzzle flash object before firing.
+            // We are doing this here specifically because we want to activate muzzle flash for one whole frame of the game.
+            #endregion
+            if (allGuns[selectedGun].muzzleFlash.activeInHierarchy)
+            {
+                muzzleFlashCounter -= Time.deltaTime;
+                if (muzzleFlashCounter <= 0)
                 {
-                    #region comment
-                    // shotCounter resets to the value of timeBetweenShots; 
-                    #endregion
-                    Shoot();
+                    allGuns[selectedGun].muzzleFlash.SetActive(false);
                 }
             }
-            overheatCounter -= coolDownRate * Time.deltaTime;
-        }
-        #region comment
-        // If the weapon is overheated. 
-        #endregion
-        else
-        {
-            overheatCounter -= overheatCoolDownRate * Time.deltaTime;
-            if(overheatCounter <= 0)
-            {
-                #region comment
-                // In case it goes down zero. Does not work because before we start shooting, the counter is already going below zero.
-                // overheatCounter = 0; 
-                #endregion
-                overheated = false;
-                #region comment
-                // Deactivate the message if the weapon isn't overheated anymore.
-                #endregion
-                UIController.instance.overheatedMessage.gameObject.SetActive(false);
-            }
-        }
 
-        #region comment
-        // No matter what, it musn't go below zero. 
-        #endregion
-        if(overheatCounter < 0)
-        {
-            overheatCounter = 0f;
-        }
-
-        #region comment
-        // Current overheat value.
-        #endregion
-        UIController.instance.overheatSlider.value = overheatCounter;
-
-        #region comment
-        // If the player scrolls the mouse wheel upwards or downwards, change the selectedGun value and call SwitchWeapon() function.
-        #endregion
-        if (Input.GetAxisRaw("Mouse ScrollWheel") > 0f)
-        {
-            selectedGun++;
-            if(selectedGun >= allGuns.Length)
-            {
-                selectedGun = 0;
-            }
-            SwitchWeapon();
-        }
-        else if(Input.GetAxisRaw("Mouse ScrollWheel") < 0f)
-        {
-            selectedGun--;
-            if(selectedGun <= 0)
-            {
-                selectedGun = allGuns.Length - 1;
-            }
-            SwitchWeapon();
-        }
-
-        #region comment
-        /* We want to make our player be able to switch weapons with keyboard keys since it will be hard to switch weapons with mouse scroll
-        ** if the player is using a laptop. */
-        #endregion
-        for(int i = 0; i < allGuns.Length; i++)
-        {
             #region comment
-            // We do not want the player to press 0 on keyboard. So if the player presses number 1 key, we get the 0th element in the array. 
+            // We want to shoot only if the weapon isn't overheated. 
             #endregion
-            if(Input.GetKeyDown((i + 1).ToString()))
+            if (overheated == false)
             {
-                selectedGun = i;
+                #region comment
+                // If the player presses the left mouse button, shoot. 
+                #endregion
+                if (Input.GetMouseButtonDown(0))
+                {
+                    Shoot();
+                }
+
+                #region comment
+                // If we are holding the left mouse click down. 
+                #endregion
+                if (Input.GetMouseButton(0) && allGuns[selectedGun].isAssaultRifle)
+                {
+                    shotCounter -= Time.deltaTime;
+
+                    if (shotCounter <= 0)
+                    {
+                        #region comment
+                        // shotCounter resets to the value of timeBetweenShots; 
+                        #endregion
+                        Shoot();
+                    }
+                }
+                overheatCounter -= coolDownRate * Time.deltaTime;
+            }
+            #region comment
+            // If the weapon is overheated. 
+            #endregion
+            else
+            {
+                overheatCounter -= overheatCoolDownRate * Time.deltaTime;
+                if (overheatCounter <= 0)
+                {
+                    #region comment
+                    // In case it goes down zero. Does not work because before we start shooting, the counter is already going below zero.
+                    // overheatCounter = 0; 
+                    #endregion
+                    overheated = false;
+                    #region comment
+                    // Deactivate the message if the weapon isn't overheated anymore.
+                    #endregion
+                    UIController.instance.overheatedMessage.gameObject.SetActive(false);
+                }
+            }
+
+            #region comment
+            // No matter what, it musn't go below zero. 
+            #endregion
+            if (overheatCounter < 0)
+            {
+                overheatCounter = 0f;
+            }
+
+            #region comment
+            // Current overheat value.
+            #endregion
+            UIController.instance.overheatSlider.value = overheatCounter;
+
+            #region comment
+            // If the player scrolls the mouse wheel upwards or downwards, change the selectedGun value and call SwitchWeapon() function.
+            #endregion
+            if (Input.GetAxisRaw("Mouse ScrollWheel") > 0f)
+            {
+                selectedGun++;
+                if (selectedGun >= allGuns.Length)
+                {
+                    selectedGun = 0;
+                }
                 SwitchWeapon();
             }
-        }
-
-
-        #region comment
-        // If the player presses the escape button, free the cursor.
-        // If the player presses the left mouse button, lock the cursor. 
-        #endregion
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            Cursor.lockState = CursorLockMode.None;
-        }
-        else if(Cursor.lockState == CursorLockMode.None)
-        {
-            if(Input.GetMouseButtonDown(0))
+            else if (Input.GetAxisRaw("Mouse ScrollWheel") < 0f)
             {
-                Cursor.lockState = CursorLockMode.Locked;
+                selectedGun--;
+                if (selectedGun <= 0)
+                {
+                    selectedGun = allGuns.Length - 1;
+                }
+                SwitchWeapon();
+            }
+
+            #region comment
+            /* We want to make our player be able to switch weapons with keyboard keys since it will be hard to switch weapons with mouse scroll
+            ** if the player is using a laptop. */
+            #endregion
+            for (int i = 0; i < allGuns.Length; i++)
+            {
+                #region comment
+                // We do not want the player to press 0 on keyboard. So if the player presses number 1 key, we get the 0th element in the array. 
+                #endregion
+                if (Input.GetKeyDown((i + 1).ToString()))
+                {
+                    selectedGun = i;
+                    SwitchWeapon();
+                }
+            }
+
+
+            #region comment
+            // If the player presses the escape button, free the cursor.
+            // If the player presses the left mouse button, lock the cursor. 
+            #endregion
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                Cursor.lockState = CursorLockMode.None;
+            }
+            else if (Cursor.lockState == CursorLockMode.None)
+            {
+                if (Input.GetMouseButtonDown(0))
+                {
+                    Cursor.lockState = CursorLockMode.Locked;
+                }
             }
         }
     }
@@ -415,8 +429,14 @@ public class PlayerController : MonoBehaviour
     #endregion
     private void LateUpdate()
     {
-        camera.transform.position = playerViewPoint.position;
-        camera.transform.rotation = playerViewPoint.rotation;
+        #region comment
+        // We are going to use photon view information to move the camera for each indivual player.
+        #endregion
+        if(photonView.IsMine)
+        {
+            camera.transform.position = playerViewPoint.position;
+            camera.transform.rotation = playerViewPoint.rotation;
+        }
     }
 
     #region comment
