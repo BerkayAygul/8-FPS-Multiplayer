@@ -479,7 +479,10 @@ public class PlayerController : MonoBehaviourPunCallbacks
                 #endregion
                 PhotonNetwork.Instantiate(playerHitImpact.name, raycastHit.point, Quaternion.identity);
 
-
+                #region comment
+                // Call this function for every player. We can send the information of the player who is responsible for this function.
+                #endregion
+                raycastHit.collider.gameObject.GetPhotonView().RPC("DealDamage", RpcTarget.All, photonView.Owner.NickName);
             }
             #region comment
             // If we hit anything different than players, create a bullet impact effect.
@@ -561,5 +564,23 @@ public class PlayerController : MonoBehaviourPunCallbacks
         // We want to make sure of muzzle flash doesn't occur when we switch the weapon.
         #endregion
         allGuns[selectedGun].muzzleFlash.SetActive(false);
+    }
+
+    #region comment
+    /* We are going to call this function when we do some damage to a player. 
+    ** When we call this function PUNRPC will run this function on every copy of the player on the network. 
+    ** The way we call this function is slightly different. */
+    #endregion
+    [PunRPC]
+    public void DealDamage(string whoDealtDamage)
+    {
+        TakeDamage(whoDealtDamage);
+    }
+
+    public void TakeDamage(string whoDealtDamage)
+    {
+        Debug.Log(photonView.Owner.NickName +  " has been hit by " + whoDealtDamage);
+
+        gameObject.SetActive(false);
     }
 }
