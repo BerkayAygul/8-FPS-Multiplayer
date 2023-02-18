@@ -29,6 +29,8 @@ public class PlayerSpawner : MonoBehaviour
 
     public GameObject deathEffect;
 
+    public float respawnTime = 5f;
+
     void Start()
     {
         #region comment
@@ -51,7 +53,24 @@ public class PlayerSpawner : MonoBehaviour
         player = PhotonNetwork.Instantiate(playerPrefab.name, spawnPoint.position, spawnPoint.rotation);
     }
 
-    public void DestroyPlayer()
+    public void DestroyPlayer(string whoKilledThePlayer)
+    {
+        UIController.instance.deathText.text = "You were killed by " + whoKilledThePlayer;
+
+        #region comment
+        // The coroutine will start running and wait a certain amount of time in a seperate thread on the CPU, and Unity will continue doing other things.
+        // We need to make sure that the player doesn't actually destroyed twice or something else happen in the time between dying and respawning.
+        #endregion
+        if(player != null)
+        {
+            #region comment
+            // We need to remember that we are only doing this if the photonView.Ismine in PlayerController.
+            #endregion
+            StartCoroutine(DeathCoroutine());
+        }
+    }   
+
+    public IEnumerator DeathCoroutine()
     {
         #region comment
         // Create the death effect when the player is dead.
@@ -62,6 +81,16 @@ public class PlayerSpawner : MonoBehaviour
         // Destroy the player over the network then spawn the player.
         #endregion
         PhotonNetwork.Destroy(player);
+
+        UIController.instance.deathScreen.SetActive(true);
+
+        #region comment
+        // yield means wait and yield return means what value we are sending back to the yield.
+        #endregion
+        yield return new WaitForSeconds(respawnTime);
+
+        UIController.instance.deathScreen.SetActive(false);
+
         SpawnPlayer();
     }
 }

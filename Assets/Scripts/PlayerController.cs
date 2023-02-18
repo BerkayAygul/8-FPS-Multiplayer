@@ -588,7 +588,7 @@ public class PlayerController : MonoBehaviourPunCallbacks
         #endregion
         if (photonView.IsMine)
         {
-            PlayerSpawner.instance.DestroyPlayer();
+            PlayerSpawner.instance.DestroyPlayer(whoDealtDamage);
         }
     }
 }
