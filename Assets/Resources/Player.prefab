@@ -52,6 +52,7 @@ MonoBehaviour:
   timeBetweenShots: 0.1
   heatPerShot: 1
   muzzleFlash: {fileID: 2262097047629752870}
+  gunDamage: 15
 --- !u!1 &1415815379201988309
 GameObject:
   m_ObjectHideFlags: 0
@@ -329,6 +330,7 @@ MonoBehaviour:
   timeBetweenShots: 0.35
   heatPerShot: 5
   muzzleFlash: {fileID: 2262097048904732183}
+  gunDamage: 50
 --- !u!1 &1415815380702324989
 GameObject:
   m_ObjectHideFlags: 0
@@ -453,6 +455,7 @@ MonoBehaviour:
   - {fileID: 1415815380094058843}
   muzzleFlashDisplayTime: 0.016666668
   playerHitImpact: {fileID: 3234598137738515823, guid: f7098435f3aac274aa58f2b50bd7679b, type: 3}
+  playerMaxHealth: 100
 --- !u!143 &1415815380702324983
 CharacterController:
   m_ObjectHideFlags: 0
@@ -596,6 +599,7 @@ MonoBehaviour:
   timeBetweenShots: 0.1
   heatPerShot: 2
   muzzleFlash: {fileID: 2262097047176441057}
+  gunDamage: 25
 --- !u!1 &1415815381004298533
 GameObject:
   m_ObjectHideFlags: 0

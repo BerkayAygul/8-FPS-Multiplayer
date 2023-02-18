@@ -118,6 +118,11 @@ public class PlayerController : MonoBehaviourPunCallbacks
 
     public GameObject playerHitImpact;
 
+    public int playerMaxHealth = 100;
+    #region comment
+    // We are going to use this value to track the player's current health. We need to make sure of that current health is at max value when at Start() function.
+    #endregion
+    private int currentPlayerHealth;
     void Start()    
     {
         #region comment
@@ -140,6 +145,8 @@ public class PlayerController : MonoBehaviourPunCallbacks
         // All weapons are disabled up on start. Use this function to activate the first gun.
         #endregion
         SwitchWeapon();
+
+        currentPlayerHealth = playerMaxHealth;
 
         #region comment
         /* Whenever the player starts playing, we want to get a spawn point from the spawn manager and move the player to that point. */
@@ -482,7 +489,7 @@ public class PlayerController : MonoBehaviourPunCallbacks
                 #region comment
                 // Call this function for every player. We can send the information of the player who is responsible for this function.
                 #endregion
-                raycastHit.collider.gameObject.GetPhotonView().RPC("DealDamage", RpcTarget.All, photonView.Owner.NickName);
+                raycastHit.collider.gameObject.GetPhotonView().RPC("DealDamage", RpcTarget.All, photonView.Owner.NickName, allGuns[selectedGun].gunDamage);
             }
             #region comment
             // If we hit anything different than players, create a bullet impact effect.
@@ -572,15 +579,18 @@ public class PlayerController : MonoBehaviourPunCallbacks
     ** The way we call this function is slightly different. */
     #endregion
     [PunRPC]
-    public void DealDamage(string whoDealtDamage)
+    public void DealDamage(string whoDealtDamage, int damageAmount)
     {
         if(photonView.IsMine)
         {
-            TakeDamage(whoDealtDamage);
+            #region comment
+            // When we add a parameter variable, the RPC doesn't automatically know how many variables it should be passing in. We need to add it to the RPC.
+            #endregion
+            TakeDamage(whoDealtDamage, damageAmount);
         }
     }
 
-    public void TakeDamage(string whoDealtDamage)
+    public void TakeDamage(string whoDealtDamage, int damageAmount)
     {
         #region comment
         // We do not want to take damage to all the machines all the time.
@@ -588,7 +598,13 @@ public class PlayerController : MonoBehaviourPunCallbacks
         #endregion
         if (photonView.IsMine)
         {
-            PlayerSpawner.instance.DestroyPlayer(whoDealtDamage);
+            currentPlayerHealth -= damageAmount;
+
+            if(currentPlayerHealth <= 0)
+            {
+                currentPlayerHealth = 0;
+                PlayerSpawner.instance.DestroyPlayer(whoDealtDamage);
+            }
         }
     }
 }

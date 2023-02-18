@@ -17,4 +17,6 @@ public class GunAttributes : MonoBehaviour
     // Create a muzzle flash after firing the weapon.
     #endregion
     public GameObject muzzleFlash;
+
+    public int gunDamage;
 }
