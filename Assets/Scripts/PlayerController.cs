@@ -149,6 +149,15 @@ public class PlayerController : MonoBehaviourPunCallbacks
         currentPlayerHealth = playerMaxHealth;
 
         #region comment
+        // Use photonview.Ismine to show the health of the players individually.
+        #endregion
+        if (photonView.IsMine)
+        {
+            UIController.instance.healthSlider.maxValue = playerMaxHealth;
+            UIController.instance.healthSlider.value = playerMaxHealth;
+        }
+
+        #region comment
         /* Whenever the player starts playing, we want to get a spawn point from the spawn manager and move the player to that point. */
         #endregion
         #region comment
@@ -605,6 +614,8 @@ public class PlayerController : MonoBehaviourPunCallbacks
                 currentPlayerHealth = 0;
                 PlayerSpawner.instance.DestroyPlayer(whoDealtDamage);
             }
+
+            UIController.instance.healthSlider.value = currentPlayerHealth;
         }
     }
 }
