@@ -574,13 +574,21 @@ public class PlayerController : MonoBehaviourPunCallbacks
     [PunRPC]
     public void DealDamage(string whoDealtDamage)
     {
-        TakeDamage(whoDealtDamage);
+        if(photonView.IsMine)
+        {
+            TakeDamage(whoDealtDamage);
+        }
     }
 
     public void TakeDamage(string whoDealtDamage)
     {
-        Debug.Log(photonView.Owner.NickName +  " has been hit by " + whoDealtDamage);
-
-        gameObject.SetActive(false);
+        #region comment
+        // We do not want to take damage to all the machines all the time.
+        // If the photon view is the player's and the player is hit, destroy the player.
+        #endregion
+        if (photonView.IsMine)
+        {
+            PlayerSpawner.instance.DestroyPlayer();
+        }
     }
 }

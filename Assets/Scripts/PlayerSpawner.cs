@@ -27,6 +27,8 @@ public class PlayerSpawner : MonoBehaviour
     #endregion
     private GameObject player;
 
+    public GameObject deathEffect;
+
     void Start()
     {
         #region comment
@@ -47,5 +49,19 @@ public class PlayerSpawner : MonoBehaviour
         // Instantiate Player Prefab over the network.
         #endregion
         player = PhotonNetwork.Instantiate(playerPrefab.name, spawnPoint.position, spawnPoint.rotation);
+    }
+
+    public void DestroyPlayer()
+    {
+        #region comment
+        // Create the death effect when the player is dead.
+        #endregion
+        PhotonNetwork.Instantiate(deathEffect.name, player.transform.position, Quaternion.identity);
+
+        #region comment
+        // Destroy the player over the network then spawn the player.
+        #endregion
+        PhotonNetwork.Destroy(player);
+        SpawnPlayer();
     }
 }
