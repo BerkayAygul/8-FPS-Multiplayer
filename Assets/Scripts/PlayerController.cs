@@ -123,6 +123,19 @@ public class PlayerController : MonoBehaviourPunCallbacks
     // We are going to use this value to track the player's current health. We need to make sure of that current health is at max value when at Start() function.
     #endregion
     private int currentPlayerHealth;
+
+    #region comment
+    // Player animator reference, we have two parameters that are called speed and grounded.
+    #endregion
+    public Animator playerAnimator;
+
+    #region comment
+    // We are going to disable the player model on local so players do not see their own bodies. Assign characterMedium as the reference of this value.
+    #endregion
+    public GameObject playerModel;
+
+    public Transform modelGunPoint;
+    public Transform gunHolder;
     void Start()    
     {
         #region comment
@@ -144,7 +157,11 @@ public class PlayerController : MonoBehaviourPunCallbacks
         #region comment
         // All weapons are disabled up on start. Use this function to activate the first gun.
         #endregion
-        SwitchWeapon();
+        #region comment
+        // We do not need this anymore since we use a RPC call.
+        #endregion
+        //SwitchWeapon();
+        photonView.RPC("SetGun", RpcTarget.All, selectedGun);
 
         currentPlayerHealth = playerMaxHealth;
 
@@ -155,6 +172,17 @@ public class PlayerController : MonoBehaviourPunCallbacks
         {
             UIController.instance.healthSlider.maxValue = playerMaxHealth;
             UIController.instance.healthSlider.value = playerMaxHealth;
+
+            #region comment
+            // If I own the player model, disable it so that I can't see it.
+            #endregion
+            playerModel.SetActive(false);
+        }
+        else
+        {
+            gunHolder.parent = modelGunPoint;
+            gunHolder.localPosition = Vector3.zero;
+            gunHolder.localRotation = Quaternion.identity;
         }
 
         #region comment
@@ -393,7 +421,8 @@ public class PlayerController : MonoBehaviourPunCallbacks
                 {
                     selectedGun = 0;
                 }
-                SwitchWeapon();
+                //SwitchWeapon();
+                photonView.RPC("SetGun", RpcTarget.All, selectedGun);
             }
             else if (Input.GetAxisRaw("Mouse ScrollWheel") < 0f)
             {
@@ -402,7 +431,8 @@ public class PlayerController : MonoBehaviourPunCallbacks
                 {
                     selectedGun = allGuns.Length - 1;
                 }
-                SwitchWeapon();
+                //SwitchWeapon();
+                photonView.RPC("SetGun", RpcTarget.All, selectedGun);
             }
 
             #region comment
@@ -417,7 +447,8 @@ public class PlayerController : MonoBehaviourPunCallbacks
                 if (Input.GetKeyDown((i + 1).ToString()))
                 {
                     selectedGun = i;
-                    SwitchWeapon();
+                    //SwitchWeapon();
+                    photonView.RPC("SetGun", RpcTarget.All, selectedGun);
                 }
             }
 
@@ -437,6 +468,18 @@ public class PlayerController : MonoBehaviourPunCallbacks
                     Cursor.lockState = CursorLockMode.Locked;
                 }
             }
+
+            #region comment
+            // We are going to use our isGrounded bool value for the grounded parameter's bool value to control the animation.
+            #endregion
+            playerAnimator.SetBool("grounded", isGrounded);
+            #region comment
+            /* The animator has a transation from idle to running if the speed paramater is greater then 0.01.
+            ** We can't just use a axis value of the moveDirection because, for example if we move to the left on the x axis, the speed would be less than zero. 
+            ** So obviously, it would never trigger our run animation. 
+            ** However, moveDirection is a Vector 3 value, we can instead use the magnitude value of the vector.*/
+            #endregion
+            playerAnimator.SetFloat("speed", moveDirection.magnitude);
         }
     }
 
@@ -616,6 +659,22 @@ public class PlayerController : MonoBehaviourPunCallbacks
             }
 
             UIController.instance.healthSlider.value = currentPlayerHealth;
+        }
+    }
+
+    #region comment
+    // We are going to use RPC to switch weapons. So everyone on the network can see if a player switch his weapons.
+    #endregion
+    [PunRPC]
+    public void SetGun(int gunToSwitchTo)
+    {
+        #region comment
+        // We are doing this to make sure we don't recieve any weird errors.
+        #endregion
+        if(gunToSwitchTo < allGuns.Length)
+        {
+            selectedGun = gunToSwitchTo;
+            SwitchWeapon();
         }
     }
 }
