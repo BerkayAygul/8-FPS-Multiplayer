@@ -22,9 +22,17 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
     #endregion
     public enum EventCodes : byte
     {
+        #region comment
+        /* We are going to create two new functions called Send and Receive for each event.
+        ** We are going to control the sending functions. For example, when somebody joins the match, we will send the new player information over the network,
+        ** When someone dies we will update the killing stats, the list players event will be a full list of all the players that are in our system and we will
+        ** send that out from the master or the host of our game to the other players so they know they all have the same full list of players. 
+        ** When we Receive new events, OnEvent function will listen for events that are coming in. Whenever we Receive an event, we will handle it with
+        ** each of these Receive functions. */
+        #endregion
         NewPlayerEvent,
         ListPlayersEvent,
-        ChangeStatEvent
+        UpdateStatsEvent
     }
 
     private void Awake()
@@ -62,7 +70,44 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
     #endregion
     public void OnEvent(EventData photonEvent)
     {
+        #region comment
+        /* The event code number will be assigned from the Enum values, logically the number of codes should be equal to the number of the Enum.
+        ** Also, byte type is between zero and two hundred and fifty five and any value that are above two hundred are actually specifically reserved
+        ** by the Photon system for handling different things. So we do not ever want to deal with those number of codes. */
+        #endregion
+        if(photonEvent.Code < 200)
+        {
+            #region comment
+            /* Use casting to turn photonEvent.Code to our Enum.
+            ** So now we know when a code number is sent, we can convert it to EventCodes Enum and store the code number.*/
+            #endregion
+            EventCodes theEvent = (EventCodes)photonEvent.Code;
 
+            #region comment
+            /* Whatever the custom data is received by the event, we are going to convert that into an array of objects.
+            ** Objects can basically be a whole bunch of data, and we will convert that individual data into some information that we can use. */
+            #endregion
+            object[] receivedData = (object[])photonEvent.CustomData;
+
+            #region comment
+            /* We are going to use a switch because to make different things depending on which event case is true.
+            ** For example, if the event that we received is NewPlayerEvent, then we can do a specific thing.
+            ** We are going to send our received data to each */
+            #endregion
+            switch (theEvent)
+            {
+                case EventCodes.NewPlayerEvent:
+                    NewPlayerEventReceive(receivedData);
+                    break;
+
+                case EventCodes.ListPlayersEvent:
+                    ListPlayerEventReceive(receivedData);
+                    break;
+                case EventCodes.UpdateStatsEvent:
+                    UpdateStatsEventReceive(receivedData);
+                    break;
+            }
+        }
     }
 
     #region comment
@@ -88,6 +133,36 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
         PhotonNetwork.RemoveCallbackTarget(this);
     }
 
+    public void NewPlayerEventReceive(object[] receivedData)
+    {
+
+    }
+
+    public void NewPlayerEventSend()
+    {
+
+    }
+
+    public void ListPlayerEventReceive(object[] receivedData)
+    {
+
+    }
+
+    public void ListPlayerEventSend()
+    {
+
+    }
+
+    public void UpdateStatsEventReceive(object[] receivedData)
+    {
+
+    }
+
+    public void UpdateStatsEventSend()
+    {
+
+    }
+
     #region comment
     /* We are going to have our match manager keeping track of information about our players, for example, information about how many kills and how many deaths
     ** they have had, is the match currently ongoing, has the match been finished, has somebody won the match... 
@@ -109,7 +184,7 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
         public int playerDeaths;
 
         #region comment
-        // We are going to use a constructor to recieve new information about the player 
+        // We are going to use a constructor to Receive new information about the player 
         #endregion
         public PlayerInformation(string playerName, int playerActorNumber, int playerKills, int playerDeaths)
         {
