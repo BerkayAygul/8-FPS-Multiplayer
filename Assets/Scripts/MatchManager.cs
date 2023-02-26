@@ -10,6 +10,23 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
 {
     public static MatchManager instance;
 
+    public List<PlayerInformation> allPlayersList = new List<PlayerInformation>();
+    #region comment
+    // We are going to keep track of what is our position in allPlayersList.
+    #endregion
+    private int index;
+
+    #region comment
+    /* We are going to use an enum to determine which kind of event we are sending.
+    ** The enum's type is going to be byte, which is quite small than int. It is useful for sending information over networks in general. */
+    #endregion
+    public enum EventCodes : byte
+    {
+        NewPlayerEvent,
+        ListPlayersEvent,
+        ChangeStatEvent
+    }
+
     private void Awake()
     {
         instance = this;
@@ -30,7 +47,7 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
     void Update()
     {
-        
+
     }
 
     #region comment
@@ -69,5 +86,37 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
         // Remove the event from the list. We will get errors if we do not remove events from the network list. 
         #endregion
         PhotonNetwork.RemoveCallbackTarget(this);
+    }
+
+    #region comment
+    /* We are going to have our match manager keeping track of information about our players, for example, information about how many kills and how many deaths
+    ** they have had, is the match currently ongoing, has the match been finished, has somebody won the match... 
+    ** First we are going to create how the player information is stored. We are going to create create a class for that. We do not have to create a
+    ** whole new script back in Unity. */
+    #endregion
+    #region comment
+    // Use [System.Serializable] to see the class on the game object that this class is attached in Unity.
+    #endregion
+    [System.Serializable]
+    public class PlayerInformation
+    {
+        public string playerName;
+        #region comment
+        // Actor number is going to be a number that the network refers to each individual player.
+        #endregion
+        public int playerActorNumber;
+        public int playerKills;
+        public int playerDeaths;
+
+        #region comment
+        // We are going to use a constructor to recieve new information about the player 
+        #endregion
+        public PlayerInformation(string playerName, int playerActorNumber, int playerKills, int playerDeaths)
+        {
+            this.playerName = playerName;
+            this.playerActorNumber = playerActorNumber;
+            this.playerKills = playerKills;
+            this.playerDeaths = playerDeaths;
+        }
     }
 }
