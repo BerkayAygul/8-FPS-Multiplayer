@@ -190,16 +190,88 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
         PlayerInformation playerInfo = new PlayerInformation((string)receivedData[0], (int)receivedData[1], (int)receivedData[2], (int)receivedData[3]);
 
         allPlayersList.Add(playerInfo);
+
+        #region comment
+        // Whenever the master receives information about a new player, we are going to call ListPlayerEventSend() and update everybody else.
+        #endregion
+        ListPlayerEventSend();
     }
+
     public void ListPlayerEventSend()
     {
+        #region comment
+        /* We have our players being added correctly, but we want to share that list of the players information with every player who isn't the master client. 
+        ** We are going package up all the players that in our allPlayersList and send that information over the network. 
+        ** The length of the package must be the count of all players in the list. */
+        #endregion
+        object[] package = new object[allPlayersList.Count];
 
+        #region comment
+        /* We are basically looping through all players, then add each player as array to the package array.
+        ** package[0] will contain the four values about the first player, package[1] will contain the four values about the second player and so on. 
+        ** Then we are going to send this information over the network, to all players. */  
+
+        #endregion
+        for(int i=0; i<allPlayersList.Count; i++)
+        {
+            object[] playersInPackage = new object[4];
+
+            playersInPackage[0] = allPlayersList[i].playerUsername;
+            playersInPackage[1] = allPlayersList[i].playerActorNumber;
+            playersInPackage[2] = allPlayersList[i].playerKills;
+            playersInPackage[3] = allPlayersList[i].playerDeaths;
+
+            package[i] = playersInPackage;
+        }
+
+        PhotonNetwork.RaiseEvent
+            (
+            (byte)EventCodes.ListPlayersEvent,
+            package,
+            new RaiseEventOptions { Receivers = ReceiverGroup.All },
+            new SendOptions { Reliability = true }
+            );
     }
 
     public void ListPlayerEventReceive(object[] receivedData)
     {
+        #region comment
+        // When ListPlayerSendEvent is called in NewPlayerEventReceive(), this function will work when OnEvent() listens ListPlayerEventSend() event.
+        #endregion
+        #region comment
+        // First of all, we are going to clear all the current information stored about the players. We can reveice the information with an object value.
+        #endregion
+        allPlayersList.Clear();
 
+        #region comment
+        /* We are going to loop through the data we received, and depack(reverse) the package with the logic in ListPlayerEventSend() function.
+        ** Then we are going to add the players to the allPlayersList. */ 
+        #endregion
+        for (int i = 0; i < receivedData.Length; i++)
+        {
+            object[] playersInPackage = (object[])receivedData[i];
+
+            PlayerInformation player = new PlayerInformation
+                (
+                (string)playersInPackage[0],
+                (int)playersInPackage[1],
+                (int)playersInPackage[2],
+                (int)playersInPackage[3]
+               );
+
+            allPlayersList.Add(player);
+
+            #region comment
+            /* We are going to make a extra check in here. If the local player's actor number is equal to the player that was just added to the list,
+            ** Then that means this local player is the player that is just got added to the list. We are going to keep track of our position with this value. */
+            #endregion
+            if(PhotonNetwork.LocalPlayer.ActorNumber == player.playerActorNumber)
+            {
+                index = i;
+            }
+        }
     }
+
     public void UpdateStatsEventSend()
     {
 
