@@ -51,6 +51,13 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
         {
             SceneManager.LoadScene(0);
         }
+        else
+        {
+            #region comment
+            // Send the player's nickname as the argument value for this function.
+            #endregion
+            NewPlayerEventSend(PhotonNetwork.LocalPlayer.NickName);
+        }
     }
 
     void Update()
@@ -133,12 +140,58 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
         PhotonNetwork.RemoveCallbackTarget(this);
     }
 
+    public void NewPlayerEventSend(string username)
+    {
+        #region comment
+        // package is going to be everything we want to send. This object array has four slots for the player's username, actor number, kills and deaths. 
+        #endregion
+        object[] package = new object[4];
+        package[0] = username;
+        #region comment
+        // Actor number of the player that is playing the game right now.
+        #endregion
+        package[1] = PhotonNetwork.LocalPlayer.ActorNumber;
+        #region comment
+        // Zero player kills and deaths at the start.
+        #endregion
+        package[2] = 0;
+        package[3] = 0;
+
+        #region comment
+        /* This is how to send an event in Photon Network. We are sending the event code for the new player event, the package and we send this information 
+        ** only to the MasterClient. Also, we want to make this information reliable so it will definitely be sent correctly over the network, 
+        ** and reach to the master client. */
+        #endregion
+        PhotonNetwork.RaiseEvent
+            (
+            (byte)EventCodes.NewPlayerEvent,
+            package,
+            new RaiseEventOptions { Receivers = ReceiverGroup.MasterClient},
+            new SendOptions { Reliability = true }
+            );
+    }
     public void NewPlayerEventReceive(object[] receivedData)
     {
+        #region comment
+        /* Send the new player's data to this function and do the correct type castings.
+        ** We know which information is in which index of the array. We can check the package array's values in NewPlayerEventSend() function. */
+        #endregion
+        #region comment
+        /* On Start() we send the new player's nickname to NewPlayerEventSend() function, 
+        ** we make a package about the player's information in NewPlayerEventSend() function, send the package with RaiseEvent(), 
+        ** then PhotonNetwork raises an event, OnEvent() function starts and gets the same information with photonEvent,
+        ** we look at the event code and start this NewPlayerEventReceive() function with a switch statement and send the player's information to this
+        ** function, then we add the player's information to the list. */
+        #endregion
+        #region comment
+        /* We are sending this information to the MasterClient, for test issues, if we do not create the room as the master in Unity Editor, 
+        ** we can not see the list of the players on MatchManager game object. Unless we share the list of the players with another structure */
+        #endregion
+        PlayerInformation playerInfo = new PlayerInformation((string)receivedData[0], (int)receivedData[1], (int)receivedData[2], (int)receivedData[3]);
 
+        allPlayersList.Add(playerInfo);
     }
-
-    public void NewPlayerEventSend()
+    public void ListPlayerEventSend()
     {
 
     }
@@ -147,18 +200,12 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
     {
 
     }
-
-    public void ListPlayerEventSend()
+    public void UpdateStatsEventSend()
     {
 
     }
 
     public void UpdateStatsEventReceive(object[] receivedData)
-    {
-
-    }
-
-    public void UpdateStatsEventSend()
     {
 
     }
@@ -175,7 +222,7 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
     [System.Serializable]
     public class PlayerInformation
     {
-        public string playerName;
+        public string playerUsername;
         #region comment
         // Actor number is going to be a number that the network refers to each individual player.
         #endregion
@@ -186,9 +233,9 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
         #region comment
         // We are going to use a constructor to Receive new information about the player 
         #endregion
-        public PlayerInformation(string playerName, int playerActorNumber, int playerKills, int playerDeaths)
+        public PlayerInformation(string playerUsername, int playerActorNumber, int playerKills, int playerDeaths)
         {
-            this.playerName = playerName;
+            this.playerUsername = playerUsername;
             this.playerActorNumber = playerActorNumber;
             this.playerKills = playerKills;
             this.playerDeaths = playerDeaths;

@@ -669,7 +669,7 @@ public class PlayerController : MonoBehaviourPunCallbacks
     public void SetGun(int gunToSwitchTo)
     {
         #region comment
-        // We are doing this to make sure we don't recieve any weird errors.
+        // We are doing this to make sure we don't receive any weird errors.
         #endregion
         if(gunToSwitchTo < allGuns.Length)
         {

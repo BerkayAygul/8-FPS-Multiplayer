@@ -24,7 +24,7 @@ public class RoomBrowse : MonoBehaviour
         roomInfo = inputInfo;
 
         #region comment
-        // From the information that we just recieved, get the name of the room here.
+        // From the information that we just received, get the name of the room here.
         #endregion
         roomButtonText.text = roomInfo.Name;
     }
