@@ -541,7 +541,10 @@ public class PlayerController : MonoBehaviourPunCallbacks
                 #region comment
                 // Call this function for every player. We can send the information of the player who is responsible for this function.
                 #endregion
-                raycastHit.collider.gameObject.GetPhotonView().RPC("DealDamage", RpcTarget.All, photonView.Owner.NickName, allGuns[selectedGun].gunDamage);
+                #region comment
+                // After we set up update stat event in MatchManager.cs, we need to send in damager player's actor number to DealDamage() RPC function.
+                #endregion
+                raycastHit.collider.gameObject.GetPhotonView().RPC("DealDamage", RpcTarget.All, photonView.Owner.NickName, allGuns[selectedGun].gunDamage, PhotonNetwork.LocalPlayer.ActorNumber);
             }
             #region comment
             // If we hit anything different than players, create a bullet impact effect.
@@ -631,18 +634,21 @@ public class PlayerController : MonoBehaviourPunCallbacks
     ** The way we call this function is slightly different. */
     #endregion
     [PunRPC]
-    public void DealDamage(string whoDealtDamage, int damageAmount)
+    public void DealDamage(string whoDealtDamage, int damageAmount, int damagerPlayerActorNumber)
     {
         if(photonView.IsMine)
         {
             #region comment
             // When we add a parameter variable, the RPC doesn't automatically know how many variables it should be passing in. We need to add it to the RPC.
             #endregion
-            TakeDamage(whoDealtDamage, damageAmount);
+            #region comment
+            // After we set up update player stats event, we need to get the damager player's actor number and send it to TakeDamage().
+            #endregion
+            TakeDamage(whoDealtDamage, damageAmount, damagerPlayerActorNumber);
         }
     }
 
-    public void TakeDamage(string whoDealtDamage, int damageAmount)
+    public void TakeDamage(string whoDealtDamage, int damageAmount, int damagerPlayerActorNumber)
     {
         #region comment
         // We do not want to take damage to all the machines all the time.
@@ -656,6 +662,12 @@ public class PlayerController : MonoBehaviourPunCallbacks
             {
                 currentPlayerHealth = 0;
                 PlayerSpawner.instance.DestroyPlayer(whoDealtDamage);
+
+                #region comment
+                /* When the player is dead, we know which player dealth the damage by the actor number, we update the damager player's kill stat.
+                ** To update the death stat of the dead player, we need to make changes in PlayerSpawner.cs */
+                #endregion
+                MatchManager.instance.UpdateStatsEventSend(damagerPlayerActorNumber, 0, 1);
             }
 
             UIController.instance.healthSlider.value = currentPlayerHealth;

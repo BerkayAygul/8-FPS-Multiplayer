@@ -272,14 +272,71 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
         }
     }
 
-    public void UpdateStatsEventSend()
+    public void UpdateStatsEventSend(int playerActorNumber, int statTypeToUpdate, int amountToChange)
     {
+        #region comment
+        /* The amount of kills and deaths the players have is going to change. We need to pass in three information to this function. 
+        ** We need to know which player we are updating information about, and we need to update kills and deaths and how much we add to them. */
+        #endregion
+        #region comment
+        /* We need the actor number because we want to see which player killed the local player. 
+        ** We use an int value for the stat to update because we will just say zero will be a kill, one will be a death.
+        ** We might need to add bonus kill points, so we use an int value for the amount to change. */
+        #endregion
+        #region comment
+        // Rather than assign the length of the array and package up on each piece one by one, we can add the values to the array just like this.
+        #endregion
+        #region comment
+        /* We are going to call this function from PlayerController.cs, in TakeDamage().
+        ** We are going to add an actor number value information of the damager player to DealDamage() RPC function, 
+        ** and send that actor number information as a reference to the RPC function call. Then we are going to pass the damager player's actor number to
+        ** TakeDamage() function and update the damager player's kill stat. */
+        #endregion
+        #region comment
+        // To update the dead player's death stat, we need to send the dead player's actor number, in PlayerSpawner.cs, in DestroyPlayer().
+        #endregion
+        object[] package = new object[] { playerActorNumber, statTypeToUpdate, amountToChange };
 
+        PhotonNetwork.RaiseEvent
+            (
+            (byte)EventCodes.UpdateStatsEvent,
+            package,
+            new RaiseEventOptions { Receivers = ReceiverGroup.All },
+            new SendOptions { Reliability = true }
+            );
     }
 
     public void UpdateStatsEventReceive(object[] receivedData)
     {
+        int playerActorNumber = (int)receivedData[0];
+        int statTypeToUpdate = (int)receivedData[1];
+        int amountToChange = (int)receivedData[2];
 
+        #region comment
+        /* After we recieve the package, we are going to loop through all our players in our list, and if one of them equals the actor that is happened, 
+        ** we will add a change to them. case 0: is kill stat, case 1: is death stat. */
+        #endregion
+        for(int i = 0; i<allPlayersList.Count; i++)
+        {
+            if(allPlayersList[i].playerActorNumber == playerActorNumber)
+            {
+                switch(statTypeToUpdate)
+                {
+                    case 0:
+                        allPlayersList[i].playerKills += amountToChange;
+                        Debug.Log("Player " + allPlayersList[i].playerUsername + " : kills " + allPlayersList[i].playerKills);
+                        break;
+                    case 1:
+                        allPlayersList[i].playerDeaths += amountToChange;
+                        Debug.Log("Player " + allPlayersList[i].playerUsername + " : deaths " + allPlayersList[i].playerDeaths);
+                        break;
+                }
+                #region comment
+                // After we found the correct player and make the changes, we do not need to continue the loop for any longer.
+                #endregion
+                break;
+            }
+        }
     }
 
     #region comment

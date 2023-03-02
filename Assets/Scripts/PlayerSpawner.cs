@@ -58,6 +58,11 @@ public class PlayerSpawner : MonoBehaviour
         UIController.instance.deathText.text = "You were killed by " + whoKilledThePlayer;
 
         #region comment
+        // We need to send the dead player's actor number to update the player's death stat.
+        #endregion
+        MatchManager.instance.UpdateStatsEventSend(PhotonNetwork.LocalPlayer.ActorNumber, 1, 1);
+
+        #region comment
         // The coroutine will start running and wait a certain amount of time in a seperate thread on the CPU, and Unity will continue doing other things.
         // We need to make sure that the player doesn't actually destroyed twice or something else happen in the time between dying and respawning.
         #endregion
