@@ -331,6 +331,15 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
                         Debug.Log("Player " + allPlayersList[i].playerUsername + " : deaths " + allPlayersList[i].playerDeaths);
                         break;
                 }
+
+                #region comment
+                // If it is the player that's having a value changed, then update the player's stat text. 
+                #endregion
+                if(i==index)
+                {
+                    UpdateStatsDisplay();
+                }
+
                 #region comment
                 // After we found the correct player and make the changes, we do not need to continue the loop for any longer.
                 #endregion
@@ -368,6 +377,23 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
             this.playerActorNumber = playerActorNumber;
             this.playerKills = playerKills;
             this.playerDeaths = playerDeaths;
+        }
+    }
+
+    public void UpdateStatsDisplay()
+    {
+        #region comment
+        // We know where we are in the list with the index variable. We need to be sure the player count has not been changed in a weird way.
+        #endregion
+        if(allPlayersList.Count > index)
+        {
+            UIController.instance.killStatText.text = "Kills: " + allPlayersList[index].playerKills;
+            UIController.instance.deathStatText.text = "Deaths: " + allPlayersList[index].playerDeaths;
+        }
+        else
+        {
+            UIController.instance.killStatText.text = "Kills: 0 ";
+            UIController.instance.deathStatText.text = "Deaths: 0";
         }
     }
 }
