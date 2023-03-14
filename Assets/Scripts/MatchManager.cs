@@ -359,6 +359,14 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
                 }
 
                 #region comment
+                // This will basically update the leaderboard table if the player is already looking at the leaderboard table.
+                #endregion
+                if(UIController.instance.leaderboardTableDisplay.activeInHierarchy)
+                {
+                    ShowLeaderboard();
+                }
+
+                #region comment
                 // After we found the correct player and make the changes, we do not need to continue the loop for any longer.
                 #endregion
                 break;
@@ -386,7 +394,8 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
     void ShowLeaderboard()
     {
         #region comment
-        // When pressed the tab key, active the leaderboard table.
+        /* When pressed the tab key, active the leaderboard table. Also, we need to update the table in UpdateStatsEventReceive() if the tab key
+        ** is already pressed down. */
         #endregion
         UIController.instance.leaderboardTableDisplay.SetActive(true);
 
@@ -404,10 +413,14 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
         UIController.instance.LeaderboardPlayerInformation.gameObject.SetActive(false);
 
         #region comment
-        // Using the current players list, we can receive player information to add them to the leaderboard table by rows, and then activate each row.
+        // Return the sorted list from SortLeaderBoardPlayers() and pass it. 
         #endregion
+        List<PlayerInformation> SortedPlayersList = SortLeaderboardPlayers(allPlayersList);
 
-        foreach (PlayerInformation playerToAdd in allPlayersList)
+        #region comment
+        // Using the sorted players list, we can receive player information to add them to the leaderboard table by rows, and then activate each row.
+        #endregion
+        foreach (PlayerInformation playerToAdd in SortedPlayersList)
         {
             LeaderboardPlayerInformation newPlayerLeaderboardRow = Instantiate(UIController.instance.LeaderboardPlayerInformation, UIController.instance.LeaderboardPlayerInformation.transform.parent);
 
@@ -417,6 +430,57 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
             leaderboardPlayerInformationList.Add(newPlayerLeaderboardRow);
         }
+    }
+
+    #region comment
+    /* This function will sort the players by kills in the leaderboard and return the table. That is why we created it with List<PlayerInformation> value.
+    ** We are going to pass the allPlayersList to this function and look at player kill values. */
+    #endregion
+    private List<PlayerInformation> SortLeaderboardPlayers(List<PlayerInformation> _allPlayersList)
+    {
+        #region comment
+        // We need to create a new list and make this list sorted by player kills.
+        #endregion
+        List<PlayerInformation> sortedPlayersList = new List<PlayerInformation>();
+
+        #region comment
+        // At the start, because our sorted list is empty, we can start the loop like this.
+        #endregion
+        while(sortedPlayersList.Count < _allPlayersList.Count)
+        {
+            #region comment
+            // We are going to set the default highest kill score is -1;
+            #endregion
+            int highestKillScore = -1;
+
+            #region comment
+            // Select the first player in the allPlayersList.
+            #endregion
+            PlayerInformation selectedPlayer = _allPlayersList[0];
+
+            #region comment
+            /* For each player in the allPlayersList, get the highest scored player and add it to the list. If that player is already in the sorted list, 
+            ** select the next highest scored player and add it to the sorted list. */
+            #endregion
+            foreach (PlayerInformation player in _allPlayersList)
+            {
+                if(!sortedPlayersList.Contains(player))
+                {
+                    if (player.playerKills > highestKillScore)
+                    {
+                        selectedPlayer = player;
+                        highestKillScore = player.playerKills;
+                    }
+                }
+            }
+
+            sortedPlayersList.Add(selectedPlayer);
+        }
+
+        #region comment
+        // After all players are sorted, return the sorted list and use this sorted list in ShowLeaderboard() function.
+        #endregion
+        return sortedPlayersList;
     }
 
     #region comment
