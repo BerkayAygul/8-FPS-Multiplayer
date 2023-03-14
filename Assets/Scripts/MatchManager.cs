@@ -17,6 +17,11 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
     private int index;
 
     #region comment
+    // We need to add each player information row to a list.
+    #endregion
+    private List<LeaderboardPlayerInformation> leaderboardPlayerInformationList = new List<LeaderboardPlayerInformation>();
+
+    #region comment
     /* We are going to use an enum to determine which kind of event we are sending.
     ** The enum's type is going to be byte, which is quite small than int. It is useful for sending information over networks in general. */
     #endregion
@@ -62,7 +67,20 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
     void Update()
     {
-
+        #region comment
+        // If the table is already open, then close it. If it is not open, then open the table.
+        #endregion
+        if(Input.GetKeyDown(KeyCode.Tab))
+        {
+            if(UIController.instance.leaderboardTableDisplay.activeInHierarchy)
+            {
+                UIController.instance.leaderboardTableDisplay.SetActive(false);
+            }
+            else
+            {
+                ShowLeaderboard();
+            }
+        }
     }
 
     #region comment
@@ -348,6 +366,59 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
         }
     }
 
+    public void UpdateStatsDisplay()
+    {
+        #region comment
+        // We know where we are in the list with the index variable. We need to be sure the player count has not been changed in a weird way.
+        #endregion
+        if(allPlayersList.Count > index)
+        {
+            UIController.instance.killStatText.text = "Kills: " + allPlayersList[index].playerKills;
+            UIController.instance.deathStatText.text = "Deaths: " + allPlayersList[index].playerDeaths;
+        }
+        else
+        {
+            UIController.instance.killStatText.text = "Kills: 0 ";
+            UIController.instance.deathStatText.text = "Deaths: 0";
+        }
+    }
+
+    void ShowLeaderboard()
+    {
+        #region comment
+        // When pressed the tab key, active the leaderboard table.
+        #endregion
+        UIController.instance.leaderboardTableDisplay.SetActive(true);
+
+        #region comment
+        /* When we open up the leaderboard, we want to make sure that the leaderboard is showing the correct players every time, in case players join the game 
+        ** lately. First of all we are going to remove the old leaderboard and clean the list. Then we are going to make sure of that the default example
+        ** player leaderboard row is always hidden. */
+        #endregion
+        foreach (LeaderboardPlayerInformation leaderboardPlayer in leaderboardPlayerInformationList)
+        {
+            Destroy(leaderboardPlayer.gameObject);
+        }
+        leaderboardPlayerInformationList.Clear();
+
+        UIController.instance.LeaderboardPlayerInformation.gameObject.SetActive(false);
+
+        #region comment
+        // Using the current players list, we can receive player information to add them to the leaderboard table by rows, and then activate each row.
+        #endregion
+
+        foreach (PlayerInformation playerToAdd in allPlayersList)
+        {
+            LeaderboardPlayerInformation newPlayerLeaderboardRow = Instantiate(UIController.instance.LeaderboardPlayerInformation, UIController.instance.LeaderboardPlayerInformation.transform.parent);
+
+            newPlayerLeaderboardRow.SetPlayerLeaderboardInformation(playerToAdd.playerUsername, playerToAdd.playerKills, playerToAdd.playerDeaths);
+
+            newPlayerLeaderboardRow.gameObject.SetActive(true);
+
+            leaderboardPlayerInformationList.Add(newPlayerLeaderboardRow);
+        }
+    }
+
     #region comment
     /* We are going to have our match manager keeping track of information about our players, for example, information about how many kills and how many deaths
     ** they have had, is the match currently ongoing, has the match been finished, has somebody won the match... 
@@ -377,23 +448,6 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
             this.playerActorNumber = playerActorNumber;
             this.playerKills = playerKills;
             this.playerDeaths = playerDeaths;
-        }
-    }
-
-    public void UpdateStatsDisplay()
-    {
-        #region comment
-        // We know where we are in the list with the index variable. We need to be sure the player count has not been changed in a weird way.
-        #endregion
-        if(allPlayersList.Count > index)
-        {
-            UIController.instance.killStatText.text = "Kills: " + allPlayersList[index].playerKills;
-            UIController.instance.deathStatText.text = "Deaths: " + allPlayersList[index].playerDeaths;
-        }
-        else
-        {
-            UIController.instance.killStatText.text = "Kills: 0 ";
-            UIController.instance.deathStatText.text = "Deaths: 0";
         }
     }
 }
