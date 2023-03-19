@@ -2793,7 +2793,7 @@ MonoBehaviour:
   deathStatText: {fileID: 1069148750}
   leaderboardTableDisplay: {fileID: 60047164}
   LeaderboardPlayerInformation: {fileID: 124065670}
-  matchEndScreen: {fileID: 0}
+  matchEndScreen: {fileID: 2062617916}
 --- !u!114 &587592721
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6981,6 +6981,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   allPlayersList: []
+  killCountToWin: 3
+  mapOverviewCameraPoint: {fileID: 875720339}
+  currentGameState: 0
+  waitStateTime: 5
 --- !u!4 &2013829639
 Transform:
   m_ObjectHideFlags: 0

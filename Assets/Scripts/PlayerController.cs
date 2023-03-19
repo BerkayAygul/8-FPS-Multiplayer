@@ -495,8 +495,23 @@ public class PlayerController : MonoBehaviourPunCallbacks
         #endregion
         if(photonView.IsMine)
         {
-            camera.transform.position = playerViewPoint.position;
-            camera.transform.rotation = playerViewPoint.rotation;
+            #region comment
+            // If the game is playing, camera view should be on the player view point. Else, camera view should overview the map.
+            #endregion
+            if(MatchManager.instance.currentGameState == MatchManager.GameState.GamePlayingState)
+            {
+                camera.transform.position = playerViewPoint.position;
+                camera.transform.rotation = playerViewPoint.rotation;
+            }
+            else
+            {
+                #region comment
+                /* We know that PlayerController.cs is going to be destroyed when we get to the end game state, but we need to note that we are doing this in
+                ** LateUpdate() function, this is going to work before things on the network get destroyed. */
+                #endregion
+                camera.transform.position = MatchManager.instance.mapOverviewCameraPoint.position;
+                camera.transform.rotation = MatchManager.instance.mapOverviewCameraPoint.rotation;
+            }
         }
     }
 

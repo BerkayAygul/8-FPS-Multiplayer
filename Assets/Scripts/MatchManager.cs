@@ -40,6 +40,27 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
         UpdateStatsEvent
     }
 
+    #region comment
+    // Waiting state is when the match has not quite started just yet.
+    #endregion
+    public enum GameState : byte
+    {
+        GameWaitingState,
+        GamePlayingState,
+        GameEndingState
+    }
+
+    #region comment
+    // When the match completes, we want to go out to the main menu or continue the session on another map.
+    #endregion
+    public int killCountToWin = 3;
+    #region comment
+    // We are going to make some changes in LateUpdate() function in PlayerController.cs with regard to current game status to change the camera view. 
+    #endregion
+    public Transform mapOverviewCameraPoint;
+    public GameState currentGameState = GameState.GameWaitingState;
+    public float waitStateTime = 5f;
+
     private void Awake()
     {
         instance = this;
@@ -62,6 +83,10 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
             // Send the player's nickname as the argument value for this function.
             #endregion
             NewPlayerEventSend(PhotonNetwork.LocalPlayer.NickName);
+            #region comment
+            // Once the match manager is connected and working correctly, we are going to set our game status to playing state.
+            #endregion
+            currentGameState = GameState.GamePlayingState;
         }
     }
 
@@ -70,7 +95,10 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
         #region comment
         // If the table is already open, then close it. If it is not open, then open the table.
         #endregion
-        if(Input.GetKeyDown(KeyCode.Tab))
+        #region comment
+        // We do not want to show the leaderboard panel if our game has ended.
+        #endregion
+        if(Input.GetKeyDown(KeyCode.Tab) && currentGameState != GameState.GameEndingState)
         {
             if(UIController.instance.leaderboardTableDisplay.activeInHierarchy)
             {
@@ -222,7 +250,14 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
         ** We are going package up all the players that in our allPlayersList and send that information over the network. 
         ** The length of the package must be the count of all players in the list. */
         #endregion
-        object[] package = new object[allPlayersList.Count];
+        #region comment
+        /* We are going to add one more information to this package to keep information about the game state. 
+        ** Because the package's first position contains the game state information, package[i + 1] will contain information of the players.
+        ** We need to do the opposite of this for recieving this event where we unpack the package. */
+        #endregion
+        object[] package = new object[allPlayersList.Count + 1];
+
+        package[0] = currentGameState;
 
         #region comment
         /* We are basically looping through all players, then add each player as array to the package array.
@@ -239,7 +274,7 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
             playersInPackage[2] = allPlayersList[i].playerKills;
             playersInPackage[3] = allPlayersList[i].playerDeaths;
 
-            package[i] = playersInPackage;
+            package[i + 1] = playersInPackage;
         }
 
         PhotonNetwork.RaiseEvent
@@ -262,10 +297,17 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
         allPlayersList.Clear();
 
         #region comment
+        /* We know that the package's first element contains information about the current game state as we set this up in ListPlayerEventSend() function.
+        ** Now, when we unpack the package, instead of starting at zero, we need to start at position one.
+        ** Also instead of storing the index at i, we need to store it at i-1 */
+        #endregion
+        currentGameState = (GameState)receivedData[0];
+
+        #region comment
         /* We are going to loop through the data we received, and depack(reverse) the package with the logic in ListPlayerEventSend() function.
         ** Then we are going to add the players to the allPlayersList. */ 
         #endregion
-        for (int i = 0; i < receivedData.Length; i++)
+        for (int i = 1; i < receivedData.Length; i++)
         {
             object[] playersInPackage = (object[])receivedData[i];
 
@@ -285,9 +327,14 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
             #endregion
             if(PhotonNetwork.LocalPlayer.ActorNumber == player.playerActorNumber)
             {
-                index = i;
+                index = i-1;
             }
         }
+
+        #region comment
+        // Only the master player will send this information to other players. Then the other players receive this information, will check their own state.
+        #endregion
+        CurrentGameStateCheck();
     }
 
     public void UpdateStatsEventSend(int playerActorNumber, int statTypeToUpdate, int amountToChange)
@@ -372,6 +419,11 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
                 break;
             }
         }
+
+        #region comment
+        // Check the kill score of the players if someone has met the requirements to win the match.
+        #endregion
+        MatchEndScoreCheck();
     }
 
     public void UpdateStatsDisplay()
@@ -482,6 +534,107 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
         #endregion
         return sortedPlayersList;
     }
+
+    #region comment
+    // Whenever a player leaves the room, this event will be triggered and the player will go to the main menu.
+    #endregion
+    public override void OnLeftRoom()
+    {
+        #region comment
+        // base will call the simple version of this function and make the things that is suppose the happen on default.
+        #endregion
+        base.OnLeftRoom();
+
+        SceneManager.LoadScene(0);
+    }
+
+    #region comment
+    // Whenever our players update their stats in UpdateStatsEventReceive(), we are going to check if someone reached the requirement to win the match.
+    #endregion
+    void MatchEndScoreCheck()
+    {
+        bool IsWinnerFound = false;
+
+        foreach (PlayerInformation player in allPlayersList)
+        {
+            if(player.playerKills >= killCountToWin && killCountToWin > 0)
+            {
+                IsWinnerFound = true;
+                break;
+            }
+        }
+
+        if(IsWinnerFound == true)
+        {
+            #region comment
+            /* As long as we haven't already ended the game already, end the game.
+            ** then the master client must inform all players in the room about the state of the game and a really good time to do this is
+            ** every time a new player arrives because we want every new player to be in sync with the master client. */
+            #endregion
+            if(PhotonNetwork.IsMasterClient && currentGameState != GameState.GameEndingState)
+            {
+                currentGameState = GameState.GameEndingState;
+                #region comment
+                // This event is only being sent by the master client to update everyone. We are going to make some changes in this function.
+                #endregion
+                ListPlayerEventSend();
+            }
+        }
+    }
+
+    #region comment
+    // We are going to call this function in ListPlayerEventReceive() to check the current state of the game after we found the winner player.
+    #endregion
+    void CurrentGameStateCheck()
+    {
+        if(currentGameState == GameState.GameEndingState)
+        {
+            EndGame();
+        }
+    }
+
+    void EndGame()
+    {
+        #region comment
+        // We should make sure that the game has ended.
+        #endregion
+        currentGameState = GameState.GameEndingState;
+
+        #region comment
+        /* When the game ends, we want to destroy players and other things on the network, then show the end screen, show the leaderboard panel,
+        ** free the mouse cursor and make it visible, then wait for a few seconds then tell the players to go to main menu. */
+        #endregion
+        if(PhotonNetwork.IsMasterClient)
+        {
+            PhotonNetwork.DestroyAll();
+        }
+
+        UIController.instance.matchEndScreen.SetActive(true);
+        ShowLeaderboard();
+
+        #region comment
+        // We need to make sure of freeing the mouse cursor when players go back to the main menu in Start() function in ServerLauncher.cs
+        #endregion
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
+        StartCoroutine(EndGameCoroutine());
+    }
+
+    private IEnumerator EndGameCoroutine()
+    {
+        yield return new WaitForSeconds(waitStateTime);
+
+        #region comment
+        // We do not want our players in the room to synch scene with the master client player. Remember that we made this true in ServerLauncher.cs
+        #endregion
+        PhotonNetwork.AutomaticallySyncScene = false;
+        #region comment
+        // This will trigger OnLeftRoom() event that we override above. Players will go back to main menu after this is called.
+        #endregion
+        PhotonNetwork.LeaveRoom();
+    }
+
 
     #region comment
     /* We are going to have our match manager keeping track of information about our players, for example, information about how many kills and how many deaths

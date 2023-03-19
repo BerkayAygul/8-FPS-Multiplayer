@@ -101,7 +101,11 @@ public class ServerLauncher : MonoBehaviourPunCallbacks
 #if UNITY_EDITOR
         roomTestButton.SetActive(true);
 #endif
-
+        #region comment
+        // Make sure that players can move the mouse cursor when the game ends and when they go back to the main menu.
+        #endregion
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
 
     }
     void CloseMenus()
