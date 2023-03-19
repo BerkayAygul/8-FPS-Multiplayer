@@ -29,6 +29,8 @@ public class UIController : MonoBehaviour
 
     public GameObject leaderboardTableDisplay;
     public LeaderboardPlayerInformation LeaderboardPlayerInformation;
+
+    public GameObject matchEndScreen;
     private void Awake()
     {
         instance = this;    
