@@ -618,6 +618,14 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
+        #region comment
+        /* When the player dies, the player's camera didn't get set to be the map camera quickly,
+        ** because the player dies before the event is recieved.
+        ** If the player gets destroyed, we are guaranteeing that the camera will move to that overview position. */
+        #endregion
+        Camera.main.transform.position = mapOverviewCameraPoint.position;
+        Camera.main.transform.rotation = mapOverviewCameraPoint.rotation;
+
         StartCoroutine(EndGameCoroutine());
     }
 
