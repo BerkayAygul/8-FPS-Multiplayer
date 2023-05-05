@@ -64,7 +64,12 @@ public class ServerLauncher : MonoBehaviourPunCallbacks
     #region comment
     // If the player has set a nickname, we don't want to go through the create nickname panel again.
     #endregion
-    private bool hasSetNickname;
+    //private bool hasSetNickname;
+    #region comment
+    /* We are going to make nickname a static variable so no matter what this bool value will be the same.
+    ** When we go back to the main menu, this static bool will always retain the value that we had before. */
+    #endregion
+    public static bool hasSetNickname;
 
     #region comment
     // This will be the name of the level we want to go.
