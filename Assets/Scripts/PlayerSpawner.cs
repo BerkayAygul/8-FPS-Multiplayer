@@ -86,7 +86,11 @@ public class PlayerSpawner : MonoBehaviour
         // Destroy the player over the network then spawn the player.
         #endregion
         PhotonNetwork.Destroy(player);
-
+        #region comment
+        /* When we destroy the player from the Photon Network, we are also make sure that the player is set to be null.
+        ** This will happen instantly in our game, before we do any of the waiting. */
+        #endregion
+        player = null;
         UIController.instance.deathScreen.SetActive(true);
 
         #region comment
@@ -96,6 +100,14 @@ public class PlayerSpawner : MonoBehaviour
 
         UIController.instance.deathScreen.SetActive(false);
 
-        SpawnPlayer();
+        #region comment
+        /* We need to make sure of the player can only be spawned only if the game is at the playing state.
+        ** We also need to be sure of there is no player already in our scene. Because, when a new game instantly starts, 
+        ** the player might not spawn and wait for the coroutine. */
+        #endregion
+        if(MatchManager.instance.currentGameState == MatchManager.GameState.GamePlayingState && player == null)
+        {
+            SpawnPlayer();
+        }
     }
 }

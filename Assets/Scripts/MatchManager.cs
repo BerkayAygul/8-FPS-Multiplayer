@@ -35,9 +35,13 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
         ** When we Receive new events, OnEvent function will listen for events that are coming in. Whenever we Receive an event, we will handle it with
         ** each of these Receive functions. */
         #endregion
+        #region comment
+        // We are going to add a new event type for starting a new match.
+        #endregion
         NewPlayerEvent,
         ListPlayersEvent,
-        UpdateStatsEvent
+        UpdateStatsEvent,
+        StartNextMatchEvent
     }
 
     #region comment
@@ -60,6 +64,11 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
     public Transform mapOverviewCameraPoint;
     public GameState currentGameState = GameState.GameWaitingState;
     public float waitStateTime = 5f;
+    #region comment
+    /* We are going to make sure we have the option of whether we want to have our game continue going or not.
+    ** So, We are going to add a bool value and use it in EndGameCoroutine() */
+    #endregion
+    public bool perpetualContinue;
 
     private void Awake()
     {
@@ -152,12 +161,17 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
                 case EventCodes.NewPlayerEvent:
                     NewPlayerEventReceive(receivedData);
                     break;
-
                 case EventCodes.ListPlayersEvent:
                     ListPlayerEventReceive(receivedData);
                     break;
                 case EventCodes.UpdateStatsEvent:
                     UpdateStatsEventReceive(receivedData);
+                    break;
+                #region comment
+                // We do not need to send or receive a package data, we just need to restart the match.
+                #endregion
+                case EventCodes.StartNextMatchEvent:
+                    StartNextMatchEventReceive();
                     break;
             }
         }
@@ -634,15 +648,74 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
         yield return new WaitForSeconds(waitStateTime);
 
         #region comment
-        // We do not want our players in the room to synch scene with the master client player. Remember that we made this true in ServerLauncher.cs
+        // If we do not want to continue the game instantly, we make the player leave the room.
         #endregion
-        PhotonNetwork.AutomaticallySyncScene = false;
+        if(!perpetualContinue)
+        {
+            #region comment
+            // We do not want our players in the room to synch scene with the master client player. Remember that we made this true in ServerLauncher.cs
+            #endregion
+            PhotonNetwork.AutomaticallySyncScene = false;
+            #region comment
+            // This will trigger OnLeftRoom() event that we override above. Players will go back to main menu after this is called.
+            #endregion
+            PhotonNetwork.LeaveRoom();
+        }
         #region comment
-        // This will trigger OnLeftRoom() event that we override above. Players will go back to main menu after this is called.
+        // The master client is going to start the next match.
         #endregion
-        PhotonNetwork.LeaveRoom();
+        else
+        {
+            if(PhotonNetwork.IsMasterClient)
+            {
+                StartNextMatchEventSend();
+            }
+        }
     }
 
+    public void StartNextMatchEventSend()
+    {
+        #region comment
+        // We do not need to send a package, so we are going to replace it with null. 
+        #endregion
+        PhotonNetwork.RaiseEvent(
+            (byte)EventCodes.StartNextMatchEvent,
+            null,
+            new RaiseEventOptions { Receivers = ReceiverGroup.All },
+            new SendOptions { Reliability = true }
+            );
+    }
+
+    public void StartNextMatchEventReceive()
+    {
+        #region comment
+        // We need to do some changes when we start a new game instantly.
+        #endregion
+        currentGameState = GameState.GamePlayingState;
+
+        UIController.instance.matchEndScreen.SetActive(false);
+        UIController.instance.leaderboardTableDisplay.SetActive(false);
+
+        #region comment
+        /* This will be running on all our clients, so every player is going to set their own records
+        ** back to zero. So we do not have to send that information out. */
+        #endregion
+        foreach (PlayerInformation player in allPlayersList)
+        {
+            player.playerKills = 0;
+            player.playerDeaths = 0;
+        }
+
+        #region comment
+        // We need to update the stats manually for all players.
+        #endregion
+        UpdateStatsDisplay();
+
+        #region comment
+        // We need to spawn all players manually. We are going to make some changes in SpawnPlayer().
+        #endregion
+        PlayerSpawner.instance.SpawnPlayer();
+    }
 
     #region comment
     /* We are going to have our match manager keeping track of information about our players, for example, information about how many kills and how many deaths
