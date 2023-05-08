@@ -668,7 +668,31 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
         {
             if(PhotonNetwork.IsMasterClient)
             {
-                StartNextMatchEventSend();
+                #region comment
+                /* We are not going to change our map if we do not want to. We are just going to restart our game. 
+                ** If we want to change our map after the end of the game, we can make it randomly. */
+                #endregion
+                if(!ServerLauncher.instance.changeMapBetweenMatches)
+                {
+                    StartNextMatchEventSend();
+                }
+                else
+                {
+                    int newMapToLoad = Random.Range(0, ServerLauncher.instance.allMapsList.Length);
+
+                    #region comment
+                    /* We are going to make a check because, if we just reload the same map again we do not need to waste our time with that.
+                    ** When we randomly get the same map again, call the next match function. (or we can change to another map, if want to). */
+                    #endregion
+                    if(ServerLauncher.instance.allMapsList[newMapToLoad] == SceneManager.GetActiveScene().name)
+                    {
+                        StartNextMatchEventSend();
+                    }
+                    else
+                    {
+                        PhotonNetwork.LoadLevel(ServerLauncher.instance.allMapsList[newMapToLoad]);
+                    }
+                }
             }
         }
     }

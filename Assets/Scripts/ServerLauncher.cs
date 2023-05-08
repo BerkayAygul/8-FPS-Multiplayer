@@ -82,6 +82,15 @@ public class ServerLauncher : MonoBehaviourPunCallbacks
     #endregion
     public GameObject roomTestButton;
 
+    #region comment
+    /* We are going to add our available playable maps to a list by giving scene names as inputs. Then add a bool value to make it optional.
+    ** We can play on other maps randomly when we start the game. 
+    ** To make other maps playable after the end of a match, we are going to make some changes in MatchManager.cs, EndGameCoroutine()
+    ** We are going to make some changes in StartGame(). */
+    #endregion
+    public string[] allMapsList;
+    public bool changeMapBetweenMatches = true;
+
     void Start()
     {
         #region comment
@@ -449,7 +458,12 @@ public class ServerLauncher : MonoBehaviourPunCallbacks
 
     public void StartGame()
     {
-        PhotonNetwork.LoadLevel(levelNameToPlay);
+        //PhotonNetwork.LoadLevel(levelNameToPlay);
+
+        #region comment
+        // Now that we have another map, we can make all of the maps playable randomly like this.
+        #endregion
+        PhotonNetwork.LoadLevel(allMapsList[Random.Range(0, allMapsList.Length)]);
     }
 
     #region comment
