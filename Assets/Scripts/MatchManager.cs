@@ -64,11 +64,20 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
     public Transform mapOverviewCameraPoint;
     public GameState currentGameState = GameState.GameWaitingState;
     public float waitStateTime = 5f;
+
     #region comment
     /* We are going to make sure we have the option of whether we want to have our game continue going or not.
     ** So, We are going to add a bool value and use it in EndGameCoroutine() */
     #endregion
     public bool perpetualContinue;
+
+    #region comment
+    /* Instead of ending the game by a max score, we can create a time length to end the game.
+    ** We are going to use these values in SetupTimer(). 
+    ** Call the related function in Start() and countdown the time in Update() */
+    #endregion
+    public float matchTimeLength = 60;
+    private float currentMatchTime;
 
     private void Awake()
     {
@@ -96,6 +105,8 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
             // Once the match manager is connected and working correctly, we are going to set our game status to playing state.
             #endregion
             currentGameState = GameState.GamePlayingState;
+
+            SetupTimer();
         }
     }
 
@@ -117,6 +128,41 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
             {
                 ShowLeaderboard();
             }
+        }
+
+        #region comment
+        /* If the match is started to play and the remaining time is greater than zero, countdown the time.
+        ** If the remaining time is zero, end the match. */
+        #endregion
+        if(currentMatchTime > 0f && currentGameState == GameState.GamePlayingState)
+        {
+            currentMatchTime -= Time.deltaTime;
+
+            if(currentMatchTime <= 0f)
+            {
+                currentMatchTime = 0f;
+
+                currentGameState = GameState.GameEndingState;
+
+                #region comment
+                /* The master client is going to tell everyone about the game state status. */
+                #endregion
+                if(PhotonNetwork.IsMasterClient)
+                {
+                    #region comment
+                    // We need to remember that ListPlayerEvent keeps the players updated about the game state.
+                    #endregion
+                    ListPlayerEventSend();
+                    #region comment
+                    // We are going to manually check the game state as well.
+                    #endregion
+                    CurrentGameStateCheck();
+                }
+            }
+            #region comment
+            // Update the timer display as long as we are counting the remaining time in every frame.
+            #endregion
+            UpdateTimerDisplay();
         }
     }
 
@@ -739,6 +785,40 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
         // We need to spawn all players manually. We are going to make some changes in SpawnPlayer().
         #endregion
         PlayerSpawner.instance.SpawnPlayer();
+    }
+
+    public void SetupTimer()
+    {
+        #region comment
+        /* We need to be make sure of the timer is only set up if the match length is greater than zero. 
+        ** So, if the creator of the room didn't set up a match timer, maximum kill count score is going to work. */
+        #endregion
+        if(matchTimeLength > 0)
+        {
+            currentMatchTime = matchTimeLength;
+            UpdateTimerDisplay();
+        }
+    }
+
+    #region comment
+    /* We need to decide how we are going to send this to timer text in UI controller.
+    ** We are going to use something called a TimeSpan. TimeSpan is something that is built into the C# systems
+    ** that allows us to create something that stores a time. Although our currentMatchTime is a float value,
+    ** we can convert it into a TimeSpan value and that will allow us to display the match time.
+    ** This function is called in Start() */
+    #endregion
+    public void UpdateTimerDisplay()
+    {
+        #region comment
+        /* Instead of creating a new System.TimeSpan object with a name, we are going to use a var value.
+        ** Whenever we create a variable that is just for temporary use like this, we can create a var value.
+        ** var value will become whatever we are setting it to. */
+        #endregion
+        var timeToDisplay = System.TimeSpan.FromSeconds(currentMatchTime);
+        #region comment
+        // Formatting the text like 00:00
+        #endregion
+        UIController.instance.matchTimerText.text = timeToDisplay.Minutes.ToString("00") + ":" + timeToDisplay.Seconds.ToString("00");
     }
 
     #region comment

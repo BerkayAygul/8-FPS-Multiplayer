@@ -31,6 +31,9 @@ public class UIController : MonoBehaviour
     public LeaderboardPlayerInformation LeaderboardPlayerInformation;
 
     public GameObject matchEndScreen;
+
+    public TMP_Text matchTimerText;
+
     private void Awake()
     {
         instance = this;    
