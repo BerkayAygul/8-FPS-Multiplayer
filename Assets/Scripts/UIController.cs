@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using Photon.Pun;
 
 public class UIController : MonoBehaviour
 {
@@ -34,8 +35,62 @@ public class UIController : MonoBehaviour
 
     public TMP_Text matchTimerText;
 
+    public GameObject inGameMenu;
+
     private void Awake()
     {
         instance = this;    
+    }
+
+    private void Update()
+    {
+        if(Input.GetKeyDown(KeyCode.Escape))
+        {
+            ShowAndHideInGameMenu();
+        }
+
+        #region comment
+        // When we are in the game, we know that cursor is invisible and locked. So, we need to free the cursor to use the in-game menu.
+        #endregion
+        #region comment
+        // To prevent mouse clicking errors, we are going to make some changes in Update() in PlayerController.cs, where we handle the mouse locking.
+        #endregion
+        if(inGameMenu.activeInHierarchy && Cursor.lockState != CursorLockMode.None)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+    }
+
+    #region comment
+    // We are going to use this function to show or hide the in-game menu by pressing the escape key on keyboard. 
+    #endregion
+    public void ShowAndHideInGameMenu()
+    {
+        if(!inGameMenu.activeInHierarchy)
+        {
+            inGameMenu.SetActive(true);
+        }
+        else
+        {
+            inGameMenu.SetActive(false);
+        }
+    }
+
+    #region comment
+    // We already know that in our MatchManager.cs we have a system that directs the player to the main menu when the player leaves the game.
+    #endregion
+    public void ReturnToMainMenu()
+    {
+        #region comment
+        // Make sure that the player doesn't sync scene with anyone else.
+        #endregion
+        PhotonNetwork.AutomaticallySyncScene = false;
+        PhotonNetwork.LeaveRoom();
+    }
+
+    public void QuitGame()
+    {
+        Application.Quit();
     }
 }

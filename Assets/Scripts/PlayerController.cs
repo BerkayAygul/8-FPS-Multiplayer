@@ -463,7 +463,10 @@ public class PlayerController : MonoBehaviourPunCallbacks
             }
             else if (Cursor.lockState == CursorLockMode.None)
             {
-                if (Input.GetMouseButtonDown(0))
+                #region comment
+                // To prevent mouse clicking issues between the game and in-game menu, we should not lock the mouse cursor when the in-game menu is open.
+                #endregion
+                if (Input.GetMouseButtonDown(0) && !UIController.instance.inGameMenu.activeInHierarchy)
                 {
                     Cursor.lockState = CursorLockMode.Locked;
                 }
