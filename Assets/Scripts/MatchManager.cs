@@ -38,10 +38,15 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
         #region comment
         // We are going to add a new event type for starting a new match.
         #endregion
+        #region comment
+        /* When a new player enters the room in middle of the match, his timer starts counting down from the start.
+        ** So, the timer must be synced over the network with regard to the master player. */
+        #endregion
         NewPlayerEvent,
         ListPlayersEvent,
         UpdateStatsEvent,
-        StartNextMatchEvent
+        StartNextMatchEvent,
+        SyncTimeEvent
     }
 
     #region comment
@@ -79,6 +84,11 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
     public float matchTimeLength = 60;
     private float currentMatchTime;
 
+    #region comment
+    // We are going to use this variable in an event to send the current time to everyone and synch the timer over the network, on a constant basis.
+    #endregion
+    private float sendTimer = 1f;
+
     private void Awake()
     {
         instance = this;
@@ -107,6 +117,15 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
             currentGameState = GameState.GamePlayingState;
 
             SetupTimer();
+
+            #region comment
+            /* We are going to deactivate the timer by default, so the players don't see the timer immediately at the start of the match. 
+            ** For the most of the time, it is going to be activated anyway but we are going to activate it in SyncTimeReceive(). */
+            #endregion
+            if (!PhotonNetwork.IsMasterClient)
+            {
+                UIController.instance.matchTimerText.gameObject.SetActive(false);
+            }
         }
     }
 
@@ -134,35 +153,56 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
         /* If the match is started to play and the remaining time is greater than zero, countdown the time.
         ** If the remaining time is zero, end the match. */
         #endregion
-        if(currentMatchTime > 0f && currentGameState == GameState.GamePlayingState)
+        #region comment
+        /* The master client will countdown the time and inform every other player in the room about the time. */
+        #endregion
+        #region comment
+        /* For development testing, a one second timer difference can happen between the Unity and built game. 
+        ** The difference is just the time it takes to be sent over the network and back into the machine.
+        ** It is not really a problem because players won't be playing two games on the same machine. */
+        #endregion
+        #region comment
+        /* currentMatchTime > 0f creates a problem that we can't get into the if statement at all and doesn't end the game when the timer reaches to 00:00
+        ** We need to make it >= 0f. */
+        #endregion
+        if (PhotonNetwork.IsMasterClient)
         {
-            currentMatchTime -= Time.deltaTime;
-
-            if(currentMatchTime <= 0f)
+            if (currentMatchTime >= 0f && currentGameState == GameState.GamePlayingState)
             {
-                currentMatchTime = 0f;
+                currentMatchTime -= Time.deltaTime;
 
-                currentGameState = GameState.GameEndingState;
-
-                #region comment
-                /* The master client is going to tell everyone about the game state status. */
-                #endregion
-                if(PhotonNetwork.IsMasterClient)
+                if (currentMatchTime <= 0f)
                 {
+                    currentMatchTime = 0f;
+
+                    currentGameState = GameState.GameEndingState;
+
                     #region comment
-                    // We need to remember that ListPlayerEvent keeps the players updated about the game state.
-                    #endregion
+                        // We need to remember that ListPlayerEvent keeps the players updated about the game state.
+                        #endregion
                     ListPlayerEventSend();
                     #region comment
-                    // We are going to manually check the game state as well.
+                    // ListPlayerEvent already checks the current game state.
                     #endregion
-                    CurrentGameStateCheck();
+                    //CurrentGameStateCheck(); 
+                }
+
+                #region comment
+                // Update the timer display as long as we are counting the remaining time in every frame.
+                #endregion
+                UpdateTimerDisplay();
+
+                #region comment
+                // The reason we don't just directly set this to be one is because things might get out of sync slightly. 
+                #endregion
+                sendTimer -= Time.deltaTime;
+                if(sendTimer <= 0)
+                {
+                    sendTimer += 1;
+
+                    SyncTimeEventSend();
                 }
             }
-            #region comment
-            // Update the timer display as long as we are counting the remaining time in every frame.
-            #endregion
-            UpdateTimerDisplay();
         }
     }
 
@@ -218,6 +258,9 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
                 #endregion
                 case EventCodes.StartNextMatchEvent:
                     StartNextMatchEventReceive();
+                    break;
+                case EventCodes.SyncTimeEvent:
+                    SyncTimeEventReceive(receivedData);
                     break;
             }
         }
@@ -819,6 +862,48 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
         // Formatting the text like 00:00
         #endregion
         UIController.instance.matchTimerText.text = timeToDisplay.Minutes.ToString("00") + ":" + timeToDisplay.Seconds.ToString("00");
+    }
+
+    #region comment
+    /* Rather than have each individual player count down the time, we can just have the master client to handle counting down.
+    ** Then each player will just set themselves to be whatever time the master client tells them. We are going to use this in Update(). */
+    #endregion
+    public void SyncTimeEventSend()
+    {
+        #region comment
+        /* We are going to send a package which contains the current time. 
+        ** We are going to convert the time value to an int value because all we really need to know about is
+        ** what is the whole number (second).
+        ** We are also going to send off our current game state so that we are able to keep our state constantly updated as well. */
+        #endregion
+        object[] package = new object[] { (int)currentMatchTime, currentGameState };
+
+        PhotonNetwork.RaiseEvent
+            (
+            (byte)EventCodes.SyncTimeEvent,
+            package,
+            new RaiseEventOptions { Receivers = ReceiverGroup.All },
+            new SendOptions { Reliability = true }
+            );
+    }
+
+    public void SyncTimeEventReceive(object[] receivedData)
+    {
+        #region comment
+        // Although our currentMatchTime is a float value, we can pull the received time as an int and it will just set it to a float value.
+        #endregion
+        currentMatchTime = (int)receivedData[0];
+        currentGameState = (GameState)receivedData[1];
+
+        #region comment
+        // After we receive the time, we are going to update the timer display to reflect what we have.
+        #endregion
+        UpdateTimerDisplay();
+
+        #region comment
+        // We already deactivated the timer in Start(). We should activate it in here.
+        #endregion
+        UIController.instance.matchTimerText.gameObject.SetActive(true);
     }
 
     #region comment
