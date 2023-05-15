@@ -110,7 +110,15 @@ public class ServerLauncher : MonoBehaviourPunCallbacks
         /* Uses the settings that we set up in PhotonServerSettings in Photon > PhotonUnityNetworking > Resources folder to connect.
         ** We set up our App Id Pun value that we get from Photon Pun website. */
         #endregion
-        PhotonNetwork.ConnectUsingSettings();
+        #region comment
+        /* A warning occurs when a player leaves the current match and goes back to the main menu.
+        ** The player is not in the disconnected state but still tries to connect.
+        ** We can add a check here to connect with settings only if we are already not connected to Photon Network. */
+        #endregion
+        if (!PhotonNetwork.IsConnected)
+        {
+            PhotonNetwork.ConnectUsingSettings();
+        }
 
 #if UNITY_EDITOR
         roomTestButton.SetActive(true);
