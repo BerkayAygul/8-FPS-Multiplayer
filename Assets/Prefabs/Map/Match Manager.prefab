@@ -30,7 +30,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 7
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &3028555944539642342
 MonoBehaviour:
@@ -45,9 +45,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   allPlayersList: []
-  killCountToWin: 5
+  killCountToWin: 8
   mapOverviewCameraPoint: {fileID: 0}
   currentGameState: 0
   waitStateTime: 5
   perpetualContinue: 1
-  matchTimeLength: 60
+  matchTimeLength: 120
