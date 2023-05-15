@@ -136,6 +136,11 @@ public class PlayerController : MonoBehaviourPunCallbacks
 
     public Transform modelGunPoint;
     public Transform gunHolder;
+
+    #region comment
+    // We are going to make a list of our available player skins. We are going to use this in Start().
+    #endregion
+    public Material[] playerSkinsList;
     void Start()    
     {
         #region comment
@@ -196,6 +201,17 @@ public class PlayerController : MonoBehaviourPunCallbacks
         /* Transform playerSpawnPoint = SpawnManager.instance.GetSpawnPoint();
         ** transform.position = playerSpawnPoint.position;
         ** transform.rotation = playerSpawnPoint.rotation; */
+
+        #region comment
+        /* To make it simple, we are going to assign player skins according to each player's actor number. 
+        ** A room can contain a maximum of eight players so we should have eight different skins. 
+        ** Because the player actor number starts from one, so we will obviously have a problem with the eighth (the last) player.
+        ** Also, we can have a situation where if someone leaves the current ongoing match and someone else joins in, then they
+        ** will become the ninth actor and it will go like that so on. 
+        ** So we are going to make a modulo calculation to assign skins.
+        ** Skins will be repeatedly taken afterwards the last player skin in the list is taken. */
+        #endregion
+        playerModel.GetComponent<Renderer>().material = playerSkinsList[photonView.Owner.ActorNumber % playerSkinsList.Length];
     }
 
     void Update()
