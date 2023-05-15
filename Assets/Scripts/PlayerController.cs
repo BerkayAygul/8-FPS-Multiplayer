@@ -141,6 +141,13 @@ public class PlayerController : MonoBehaviourPunCallbacks
     // We are going to make a list of our available player skins. We are going to use this in Start().
     #endregion
     public Material[] playerSkinsList;
+
+    #region comment
+    // Aim down sight speed. How quickly the player zooms in and out. We are going to make the weapon aim down sight system in Update(). 
+    #endregion
+    public float adsSpeed;
+    public Transform adsZoomOutPoint;
+    public Transform adsZoomInPoint;
     void Start()    
     {
         #region comment
@@ -486,6 +493,31 @@ public class PlayerController : MonoBehaviourPunCallbacks
                 {
                     Cursor.lockState = CursorLockMode.Locked;
                 }
+            }
+
+            #region comment
+            /* Aim down sight when pressing the right mouse key. 
+            ** What will happen here is it'll just snap into position straight away. It will go from one zoom 
+            ** to the other instantly. So that would not feel great. Instead, we want to gently zoom into it. 
+            ** So we are going to use Mathf.Lerp() and move between one point to another point gradually slowing over time. 
+            ** Start from the camera field of view, go to the given adsZoom value, by adsSpeed * Time.deltaTime speed. */
+            #endregion
+            #region comment
+            /* We are also going to create two different view points for players to view the weapon in the middle of the screen when the player zoom. 
+            ** Then we are going to create references to both of those points. Then we are going to move our gun position to one of those points. */
+            #endregion
+            if (Input.GetMouseButton(1))
+            {
+                camera.fieldOfView = Mathf.Lerp(camera.fieldOfView, allGuns[selectedGun].adsZoom, adsSpeed * Time.deltaTime);
+                gunHolder.position = Vector3.Lerp(gunHolder.position, adsZoomInPoint.position, adsSpeed * Time.deltaTime);
+            }
+            #region comment
+            // Go back to the normal field of view, 60 is the default field of view value.
+            #endregion
+            else
+            {
+                camera.fieldOfView = Mathf.Lerp(camera.fieldOfView, 60f, adsSpeed * Time.deltaTime);
+                gunHolder.position = Vector3.Lerp(gunHolder.position, adsZoomOutPoint.position, adsSpeed * Time.deltaTime);
             }
 
             #region comment

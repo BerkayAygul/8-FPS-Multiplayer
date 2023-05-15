@@ -84,6 +84,7 @@ MonoBehaviour:
   heatPerShot: 1
   muzzleFlash: {fileID: 2642870991839681927}
   gunDamage: 15
+  adsZoom: 50
 --- !u!1 &1654625809
 GameObject:
   m_ObjectHideFlags: 0
@@ -137,6 +138,7 @@ MonoBehaviour:
   heatPerShot: 2
   muzzleFlash: {fileID: 2642870991329755877}
   gunDamage: 25
+  adsZoom: 60
 --- !u!1 &1705654513
 GameObject:
   m_ObjectHideFlags: 0
@@ -224,6 +226,38 @@ MonoBehaviour:
   heatPerShot: 5
   muzzleFlash: {fileID: 2642870992957871870}
   gunDamage: 50
+  adsZoom: 35
+--- !u!1 &1410682845184059236
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1431394219614132310}
+  m_Layer: 0
+  m_Name: ADS Zoom In Point
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1431394219614132310
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1410682845184059236}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0.25, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1415815381004298532}
+  m_RootOrder: -1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1415815379201988309
 GameObject:
   m_ObjectHideFlags: 0
@@ -488,7 +522,7 @@ Transform:
   - {fileID: 1415815379456086936}
   - {fileID: 4312049897267073005}
   m_Father: {fileID: 0}
-  m_RootOrder: 9
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &1415815380702324986
 MeshFilter:
@@ -588,6 +622,9 @@ MonoBehaviour:
   - {fileID: 2100000, guid: 3212f94e07d1deb45aa6a9a29053538a, type: 2}
   - {fileID: 2100000, guid: 4baa1a7cf7fd5e54895a5459a1d0a433, type: 2}
   - {fileID: 2100000, guid: 3cc029f6eccfe434ba9eb087e3e1d33b, type: 2}
+  adsSpeed: 5
+  adsZoomOutPoint: {fileID: 1178489485986149829}
+  adsZoomInPoint: {fileID: 1431394219614132310}
 --- !u!143 &1415815380702324983
 CharacterController:
   m_ObjectHideFlags: 0
@@ -674,8 +711,41 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1705654514}
+  - {fileID: 1178489485986149829}
+  - {fileID: 1431394219614132310}
   - {fileID: 1415815379201988308}
   m_Father: {fileID: 1415815380702324985}
+  m_RootOrder: -1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &6901888988467645978
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1178489485986149829}
+  m_Layer: 0
+  m_Name: ADS Zoom Out Point
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1178489485986149829
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6901888988467645978}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1415815381004298532}
   m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &2912761313899654063

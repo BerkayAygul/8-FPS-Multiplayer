@@ -19,4 +19,11 @@ public class GunAttributes : MonoBehaviour
     public GameObject muzzleFlash;
 
     public int gunDamage;
+
+    #region comment
+    /* Value for aiming down sight the weapon (zoom float value).
+    ** We are going to assign this value for each different weapon we want to zoom. The lesser value zooms more. 
+    ** We are going to use this value in PlayerController.cs */
+    #endregion
+    public float adsZoom;
 }
