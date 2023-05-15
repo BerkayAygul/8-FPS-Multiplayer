@@ -148,6 +148,12 @@ public class PlayerController : MonoBehaviourPunCallbacks
     public float adsSpeed;
     public Transform adsZoomOutPoint;
     public Transform adsZoomInPoint;
+
+    #region comment
+    /* Player sound effects. */
+    #endregion
+    public AudioSource SFX_PlayerFootstepSlow;
+    public AudioSource SFX_PlayerFootstepFast;
     void Start()    
     {
         #region comment
@@ -286,10 +292,38 @@ public class PlayerController : MonoBehaviourPunCallbacks
             if (Input.GetKey(KeyCode.LeftShift))
             {
                 activeMoveSpeed = runSpeed;
+
+                #region comment
+                /* We should add some checks for footstep sound effect.
+                ** The player must not make a footstep sound if the player has no movement and we do not want to play the duplicate of this sound effect. */
+                #endregion
+                if(!SFX_PlayerFootstepFast.isPlaying && moveDirection != Vector3.zero)
+                {
+                    SFX_PlayerFootstepFast.Play();
+                    SFX_PlayerFootstepSlow.Stop();
+                }
             }
             else
             {
                 activeMoveSpeed = moveSpeed;
+
+                #region comment
+                // Same checks as the above, for the walking speed sound effect. 
+                #endregion
+                if(!SFX_PlayerFootstepSlow.isPlaying && moveDirection != Vector3.zero)
+                {
+                    SFX_PlayerFootstepSlow.Play();
+                    SFX_PlayerFootstepFast.Stop();
+                }
+            }
+
+            #region comment
+            // Extra checks for footstep sound effect to not make a footstep sound when the player jumps or when the player has no movement. 
+            #endregion
+            if(moveDirection == Vector3.zero || !isGrounded)
+            {
+                SFX_PlayerFootstepSlow.Stop();
+                SFX_PlayerFootstepFast.Stop();
             }
 
             #region comment
@@ -675,6 +709,17 @@ public class PlayerController : MonoBehaviourPunCallbacks
         #endregion
         allGuns[selectedGun].muzzleFlash.SetActive(true);
         muzzleFlashCounter = muzzleFlashDisplayTime;
+
+        #region comment
+        /* Play SFX sound when a weapon is shot. 
+        ** One thing to be aware of with this is, an assault gun can fire quickly by holding down the shoot button or 
+        ** the player can just keep clicking on the shoot button really fast. 
+        ** We do not want to play the sound of the first shot and then play the second shot before the sound of the first shot is finished.
+        ** So we need to be make sure that right before we play a new sound, we actually need to stop the currently ongoing sound.
+        ** */
+        #endregion
+        allGuns[selectedGun].SFX_gunshotSound.Stop();
+        allGuns[selectedGun].SFX_gunshotSound.Play();
     }
 
     #region comment

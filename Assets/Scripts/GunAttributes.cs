@@ -26,4 +26,9 @@ public class GunAttributes : MonoBehaviour
     ** We are going to use this value in PlayerController.cs */
     #endregion
     public float adsZoom;
+
+    #region comment
+    // Gun SFX references, we are going to use them when we fire a weapon in Shoot() in PlayerController.cs
+    #endregion
+    public AudioSource SFX_gunshotSound;
 }
