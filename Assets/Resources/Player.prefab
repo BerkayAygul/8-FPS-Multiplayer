@@ -86,7 +86,7 @@ MonoBehaviour:
   muzzleFlash: {fileID: 2642870991839681927}
   gunDamage: 15
   adsZoom: 50
-  SFX_gunshotSound: {fileID: 0}
+  SFX_gunshotSound: {fileID: 7044619379232836075}
 --- !u!82 &7044619379232836075
 AudioSource:
   m_ObjectHideFlags: 0
@@ -238,7 +238,7 @@ MonoBehaviour:
   muzzleFlash: {fileID: 2642870991329755877}
   gunDamage: 25
   adsZoom: 60
-  SFX_gunshotSound: {fileID: 0}
+  SFX_gunshotSound: {fileID: 8042144747845346364}
 --- !u!82 &8042144747845346364
 AudioSource:
   m_ObjectHideFlags: 0
@@ -424,7 +424,7 @@ MonoBehaviour:
   muzzleFlash: {fileID: 2642870992957871870}
   gunDamage: 50
   adsZoom: 35
-  SFX_gunshotSound: {fileID: 0}
+  SFX_gunshotSound: {fileID: 438088718416455757}
 --- !u!82 &438088718416455757
 AudioSource:
   m_ObjectHideFlags: 0
